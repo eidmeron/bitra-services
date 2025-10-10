@@ -4,9 +4,18 @@ export default () => ({
     draggedField: null,
 
     init() {
+        console.log('🚀 Form Builder init() called');
+        console.log('📋 window.formSchema exists?', !!window.formSchema);
+        console.log('📊 window.formSchema:', window.formSchema);
+        
         // Load existing form schema if editing
         if (window.formSchema) {
+            console.log('✅ Loading', window.formSchema.length, 'fields from window.formSchema');
             this.fields = window.formSchema;
+            console.log('✅ this.fields now has', this.fields.length, 'fields');
+            console.log('📝 Fields:', this.fields);
+        } else {
+            console.warn('⚠️ No window.formSchema found - starting with empty fields array');
         }
     },
 
@@ -21,8 +30,20 @@ export default () => ({
             width: '100',
             required: false,
             options: ['select', 'radio', 'checkbox'].includes(type) ? [] : null,
-            pricingRules: null,
-            conditionalLogic: null
+            pricingRules: {
+                pricePerUnit: 0
+            },
+            validationRules: {
+                minLength: null,
+                maxLength: null,
+                min: null,
+                max: null,
+                pattern: null
+            },
+            conditionalLogic: {
+                operator: 'and',
+                rules: []
+            }
         };
 
         this.fields.push(field);
@@ -98,6 +119,26 @@ export default () => ({
 
     removeOption(field, index) {
         field.options.splice(index, 1);
+    },
+
+    addConditionalRule(field) {
+        if (!field.conditionalLogic) {
+            field.conditionalLogic = {
+                operator: 'and',
+                rules: []
+            };
+        }
+        field.conditionalLogic.rules.push({
+            field: '',
+            condition: 'equals',
+            value: ''
+        });
+    },
+
+    removeConditionalRule(field, index) {
+        if (field.conditionalLogic && field.conditionalLogic.rules) {
+            field.conditionalLogic.rules.splice(index, 1);
+        }
     }
 });
 

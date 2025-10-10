@@ -26,11 +26,17 @@
                 <a href="{{ route('admin.companies.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.companies.*') ? 'bg-gray-800' : '' }}">
                     🏢 Företag
                 </a>
+                <a href="{{ route('admin.categories.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.categories.*') ? 'bg-gray-800' : '' }}">
+                    📂 Kategorier
+                </a>
                 <a href="{{ route('admin.services.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.services.*') ? 'bg-gray-800' : '' }}">
                     🛠️ Tjänster
                 </a>
                 <a href="{{ route('admin.forms.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.forms.*') ? 'bg-gray-800' : '' }}">
                     📝 Formulär
+                </a>
+                <a href="{{ route('admin.zones.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.zones.*') ? 'bg-gray-800' : '' }}">
+                    🗺️ Zoner
                 </a>
                 <a href="{{ route('admin.cities.index') }}" class="block px-6 py-3 hover:bg-gray-800 {{ request()->routeIs('admin.cities.*') ? 'bg-gray-800' : '' }}">
                     🏙️ Städer

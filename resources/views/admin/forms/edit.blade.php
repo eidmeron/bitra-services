@@ -299,6 +299,12 @@
                                                 placeholder="Etikett"
                                                 class="flex-1 px-2 py-1 border rounded text-sm"
                                             >
+                                            <input 
+                                                type="number" 
+                                                x-model="option.price"
+                                                placeholder="Pris (kr)"
+                                                class="w-20 px-2 py-1 border rounded text-sm"
+                                            >
                                             <button @click="removeOption(selectedField, idx)" class="text-red-500 hover:text-red-700">
                                                 ✕
                                             </button>
@@ -309,6 +315,132 @@
                             <button @click="addOption(selectedField)" class="text-sm text-blue-600 hover:underline mt-2">
                                 + Lägg till alternativ
                             </button>
+                        </div>
+
+                        <!-- Pricing Rules -->
+                        <div x-show="['number', 'slider'].includes(selectedField?.type)" class="border-t pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">💰 Prissättning</label>
+                            <div class="space-y-2">
+                                <div>
+                                    <label class="text-xs text-gray-600">Pris per enhet (kr)</label>
+                                    <input 
+                                        type="number" 
+                                        x-model="selectedField.pricingRules.pricePerUnit"
+                                        placeholder="0.00"
+                                        step="0.01"
+                                        class="w-full px-2 py-1 border rounded text-sm"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validation Rules -->
+                        <div class="border-t pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">✓ Valideringsregler</label>
+                            <div class="space-y-2">
+                                <template x-if="selectedField?.type === 'text' || selectedField?.type === 'textarea'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Min längd</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.minLength"
+                                            placeholder="ex: 3"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                <template x-if="selectedField?.type === 'text' || selectedField?.type === 'textarea'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Max längd</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.maxLength"
+                                            placeholder="ex: 100"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                <template x-if="selectedField?.type === 'number'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Minimivärde</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.min"
+                                            placeholder="ex: 0"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                <template x-if="selectedField?.type === 'number'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Maximivärde</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.max"
+                                            placeholder="ex: 100"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Conditional Logic -->
+                        <div class="border-t pt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">🔀 Villkorsstyrd logik</label>
+                            <p class="text-xs text-gray-500 mb-2">Visa detta fält endast om:</p>
+                            
+                            <div class="space-y-2">
+                                <select 
+                                    x-model="selectedField.conditionalLogic.operator"
+                                    class="w-full px-2 py-1 border rounded text-sm"
+                                >
+                                    <option value="and">Alla villkor måste uppfyllas (OCH)</option>
+                                    <option value="or">Ett villkor måste uppfyllas (ELLER)</option>
+                                </select>
+                                
+                                <template x-if="selectedField?.conditionalLogic?.rules">
+                                    <div class="space-y-2">
+                                        <template x-for="(rule, ruleIdx) in selectedField.conditionalLogic.rules" :key="ruleIdx">
+                                            <div class="border p-2 rounded text-sm space-y-1">
+                                                <select x-model="rule.field" class="w-full px-2 py-1 border rounded text-xs">
+                                                    <option value="">Välj fält...</option>
+                                                    <template x-for="field in fields" :key="field.id">
+                                                        <option x-bind:value="field.name" x-text="field.label"></option>
+                                                    </template>
+                                                </select>
+                                                
+                                                <select x-model="rule.condition" class="w-full px-2 py-1 border rounded text-xs">
+                                                    <option value="equals">Är lika med</option>
+                                                    <option value="not_equals">Är inte lika med</option>
+                                                    <option value="contains">Innehåller</option>
+                                                    <option value="not_contains">Innehåller inte</option>
+                                                    <option value="greater_than">Större än</option>
+                                                    <option value="less_than">Mindre än</option>
+                                                    <option value="is_empty">Är tom</option>
+                                                    <option value="is_not_empty">Är inte tom</option>
+                                                </select>
+                                                
+                                                <div class="flex gap-2">
+                                                    <input 
+                                                        type="text" 
+                                                        x-model="rule.value"
+                                                        placeholder="Värde"
+                                                        class="flex-1 px-2 py-1 border rounded text-xs"
+                                                    >
+                                                    <button @click="removeConditionalRule(selectedField, ruleIdx)" class="text-red-500 hover:text-red-700 text-xs">
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </template>
+                                
+                                <button @click="addConditionalRule(selectedField)" class="text-xs text-blue-600 hover:underline">
+                                    + Lägg till villkor
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -335,20 +467,56 @@
 
 @push('scripts')
 <script>
-    window.formSchema = @json($form->fields->map(function($field) {
+    // Debug: Form load timestamp
+    console.log('🔄 Form loaded at:', new Date().toISOString());
+    console.log('📝 Form ID:', {{ $form->id }});
+    console.log('📋 Fields from database:', {{ $form->fields->count() }});
+    
+    window.formSchema = {!! json_encode($form->fields->map(function($field) {
         return [
-            'id' => $field->id,
+            'id' => (string)$field->id,
             'type' => $field->field_type,
             'label' => $field->field_label,
             'name' => $field->field_name,
-            'placeholder' => $field->placeholder_text,
-            'helpText' => $field->help_text,
+            'placeholder' => $field->placeholder_text ?? '',
+            'helpText' => $field->help_text ?? '',
             'width' => $field->field_width,
-            'required' => $field->required,
-            'options' => $field->field_options,
-            'pricingRules' => $field->pricing_rules,
+            'required' => (bool)$field->required,
+            'options' => $field->field_options ?? [],
+            'pricingRules' => $field->pricing_rules ?? ['pricePerUnit' => 0],
+            'validationRules' => $field->validation_rules ?? [
+                'minLength' => null,
+                'maxLength' => null,
+                'min' => null,
+                'max' => null,
+                'pattern' => null
+            ],
+            'conditionalLogic' => $field->conditional_logic ?? [
+                'operator' => 'and',
+                'rules' => []
+            ],
         ];
-    }));
+    })) !!};
+    
+    // Debug: Log the schema
+    console.log('✅ window.formSchema loaded:', window.formSchema);
+    console.log('📊 Number of fields in schema:', window.formSchema ? window.formSchema.length : 0);
+    
+    // Verify Alpine loads the data
+    document.addEventListener('alpine:init', () => {
+        console.log('🏔️ Alpine.js initialized');
+    });
+    
+    // Check Alpine data after a short delay
+    setTimeout(() => {
+        const formBuilder = document.querySelector('[x-data="formBuilder()"]');
+        if (formBuilder && formBuilder.__x) {
+            console.log('🎯 Alpine component data:', formBuilder.__x.$data);
+            console.log('📝 Fields in Alpine:', formBuilder.__x.$data.fields);
+        } else {
+            console.error('❌ Alpine component not found or not initialized');
+        }
+    }, 1000);
 </script>
 @endpush
 @endsection

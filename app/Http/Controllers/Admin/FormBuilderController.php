@@ -100,5 +100,108 @@ class FormBuilderController extends Controller
 
         return view('admin.forms.shortcode', compact('form', 'shortcode', 'publicUrl', 'embedCode', 'iframeCode'));
     }
+
+    /**
+     * Duplicate an existing form
+     */
+    public function duplicate(Form $form): RedirectResponse
+    {
+        $duplicatedForm = $this->formBuilderService->duplicateForm($form);
+
+        return redirect()->route('admin.forms.edit', $duplicatedForm)
+            ->with('success', 'Formulär duplicerat framgångsrikt.');
+    }
+
+    /**
+     * Add a new field to the form via AJAX
+     */
+    public function addField(Request $request, Form $form)
+    {
+        $validated = $request->validate([
+            'field_type' => 'required|string',
+            'field_label' => 'required|string|max:255',
+            'field_name' => 'required|string|max:255',
+            'placeholder_text' => 'nullable|string',
+            'help_text' => 'nullable|string',
+            'field_width' => 'required|in:full,half,third,quarter',
+            'required' => 'boolean',
+            'field_options' => 'nullable|array',
+            'pricing_rules' => 'nullable|array',
+            'conditional_logic' => 'nullable|array',
+            'validation_rules' => 'nullable|array',
+            'sort_order' => 'nullable|integer',
+        ]);
+
+        $field = $this->formBuilderService->addField($form, $validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fält tillagt',
+            'field' => $field,
+        ]);
+    }
+
+    /**
+     * Update an existing field
+     */
+    public function updateField(Request $request, Form $form, $fieldId)
+    {
+        $validated = $request->validate([
+            'field_type' => 'sometimes|string',
+            'field_label' => 'sometimes|string|max:255',
+            'field_name' => 'sometimes|string|max:255',
+            'placeholder_text' => 'nullable|string',
+            'help_text' => 'nullable|string',
+            'field_width' => 'sometimes|in:full,half,third,quarter',
+            'required' => 'sometimes|boolean',
+            'field_options' => 'nullable|array',
+            'pricing_rules' => 'nullable|array',
+            'conditional_logic' => 'nullable|array',
+            'validation_rules' => 'nullable|array',
+        ]);
+
+        $field = $form->fields()->findOrFail($fieldId);
+        $field->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fält uppdaterat',
+            'field' => $field,
+        ]);
+    }
+
+    /**
+     * Delete a field from the form
+     */
+    public function deleteField(Form $form, $fieldId)
+    {
+        $field = $form->fields()->findOrFail($fieldId);
+        $field->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fält raderat',
+        ]);
+    }
+
+    /**
+     * Reorder fields
+     */
+    public function reorderFields(Request $request, Form $form)
+    {
+        $validated = $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'required|integer|exists:form_fields,id',
+        ]);
+
+        foreach ($validated['order'] as $index => $fieldId) {
+            $form->fields()->where('id', $fieldId)->update(['sort_order' => $index]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Fält omordnade',
+        ]);
+    }
 }
 

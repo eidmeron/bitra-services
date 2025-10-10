@@ -75,38 +75,44 @@
                                 @change="updateField('{{ $field->field_name }}', $event.target.value)"
                             >
                                 <option value="">Välj...</option>
-                                @foreach($field->field_options as $option)
-                                    <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
-                                @endforeach
+                                @if(is_array($field->field_options))
+                                    @foreach($field->field_options as $option)
+                                        <option value="{{ $option['value'] ?? '' }}">{{ $option['label'] ?? $option }}</option>
+                                    @endforeach
+                                @endif
                             </select>
                         @elseif($field->field_type === 'radio' && $field->field_options)
                             <div class="space-y-2">
-                                @foreach($field->field_options as $option)
-                                    <label class="flex items-center">
-                                        <input 
-                                            type="radio" 
-                                            name="{{ $field->field_name }}"
-                                            value="{{ $option['value'] }}"
-                                            class="mr-2"
-                                            {{ $field->required ? 'required' : '' }}
-                                        >
-                                        <span>{{ $option['label'] }}</span>
-                                    </label>
-                                @endforeach
+                                @if(is_array($field->field_options))
+                                    @foreach($field->field_options as $option)
+                                        <label class="flex items-center">
+                                            <input 
+                                                type="radio" 
+                                                name="{{ $field->field_name }}"
+                                                value="{{ $option['value'] ?? '' }}"
+                                                class="mr-2"
+                                                {{ $field->required ? 'required' : '' }}
+                                            >
+                                            <span>{{ $option['label'] ?? $option }}</span>
+                                        </label>
+                                    @endforeach
+                                @endif
                             </div>
                         @elseif($field->field_type === 'checkbox' && $field->field_options)
                             <div class="space-y-2">
-                                @foreach($field->field_options as $option)
-                                    <label class="flex items-center">
-                                        <input 
-                                            type="checkbox" 
-                                            name="{{ $field->field_name }}[]"
-                                            value="{{ $option['value'] }}"
-                                            class="mr-2"
-                                        >
-                                        <span>{{ $option['label'] }}</span>
-                                    </label>
-                                @endforeach
+                                @if(is_array($field->field_options))
+                                    @foreach($field->field_options as $option)
+                                        <label class="flex items-center">
+                                            <input 
+                                                type="checkbox" 
+                                                name="{{ $field->field_name }}[]"
+                                                value="{{ $option['value'] ?? '' }}"
+                                                class="mr-2"
+                                            >
+                                            <span>{{ $option['label'] ?? $option }}</span>
+                                        </label>
+                                    @endforeach
+                                @endif
                             </div>
                         @elseif($field->field_type === 'date')
                             <input 

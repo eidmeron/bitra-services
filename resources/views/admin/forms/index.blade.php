@@ -62,26 +62,35 @@
                 <p>Skapad: {{ $form->created_at->format('Y-m-d') }}</p>
             </div>
 
-            <div class="border-t pt-4 flex justify-between items-center">
-                <div class="flex space-x-2">
+            <div class="border-t pt-4">
+                <div class="flex flex-wrap gap-2 mb-3">
                     <a href="{{ route('admin.forms.edit', $form) }}" class="text-blue-600 hover:underline text-sm">
-                        Redigera
+                        ✏️ Redigera
                     </a>
                     <a href="{{ route('admin.forms.preview', $form) }}" class="text-green-600 hover:underline text-sm" target="_blank">
-                        Förhandsgranska
+                        👁️ Förhandsgranska
                     </a>
                     <a href="{{ route('admin.forms.shortcode', $form) }}" class="text-purple-600 hover:underline text-sm">
-                        Kortkod
+                        📋 Kortkod
                     </a>
                 </div>
                 
-                <form method="POST" action="{{ route('admin.forms.destroy', $form) }}" onsubmit="return confirm('Är du säker?')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="text-red-600 hover:underline text-sm">
-                        Radera
-                    </button>
-                </form>
+                <div class="flex justify-between items-center">
+                    <form method="POST" action="{{ route('admin.forms.duplicate', $form) }}" class="inline">
+                        @csrf
+                        <button type="submit" class="text-indigo-600 hover:underline text-sm">
+                            📑 Duplicera
+                        </button>
+                    </form>
+                    
+                    <form method="POST" action="{{ route('admin.forms.destroy', $form) }}" onsubmit="return confirm('Är du säker?')" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:underline text-sm">
+                            🗑️ Radera
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     @empty

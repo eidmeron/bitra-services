@@ -24,6 +24,7 @@ class FormField extends Model
         'sort_order',
         'pricing_rules',
         'conditional_logic',
+        'validation_rules',
         'field_options',
         'parent_id',
         'step_number',
@@ -34,6 +35,7 @@ class FormField extends Model
         'sort_order' => 'integer',
         'pricing_rules' => 'array',
         'conditional_logic' => 'array',
+        'validation_rules' => 'array',
         'field_options' => 'array',
         'step_number' => 'integer',
     ];
