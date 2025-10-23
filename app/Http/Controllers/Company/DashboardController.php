@@ -15,25 +15,102 @@ class DashboardController extends Controller
     {
         $company = auth()->user()->company;
 
+        // Main stats
         $stats = [
+            'total_bookings' => Booking::where('company_id', $company->id)->count(),
             'assigned_bookings' => Booking::where('company_id', $company->id)->where('status', 'assigned')->count(),
             'in_progress' => Booking::where('company_id', $company->id)->where('status', 'in_progress')->count(),
+            'completed_bookings' => Booking::where('company_id', $company->id)->where('status', 'completed')->count(),
             'completed_today' => Booking::where('company_id', $company->id)
                 ->where('status', 'completed')
                 ->whereDate('completed_at', today())
                 ->count(),
             'total_revenue' => Booking::where('company_id', $company->id)
-                ->where('status', 'completed')
+                ->whereIn('status', ['completed', 'confirmed'])
                 ->sum('final_price'),
-            'average_rating' => $company->review_average,
+            'monthly_revenue' => Booking::where('company_id', $company->id)
+                ->whereIn('status', ['completed', 'confirmed'])
+                ->whereMonth('created_at', now()->month)
+                ->sum('final_price'),
+            'average_rating' => $company->reviews_avg_rating ?? 0,
+            'total_reviews' => $company->reviews_count ?? 0,
         ];
 
+        // Recent bookings - paginated
         $recentBookings = Booking::where('company_id', $company->id)
             ->with(['service', 'city', 'user'])
             ->latest()
-            ->limit(10)
+            ->paginate(5, ['*'], 'recent_page');
+
+        // Upcoming bookings - paginated
+        $upcomingBookings = Booking::where('company_id', $company->id)
+            ->whereIn('status', ['assigned', 'in_progress'])
+            ->with(['service', 'city', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(5, ['*'], 'upcoming_page');
+
+        // Recent messages - paginated
+        $recentMessages = $company->messages()
+            ->where('status', 'new')
+            ->latest()
+            ->paginate(5, ['*'], 'messages_page');
+
+        // Monthly revenue chart (last 6 months)
+        $monthlyRevenueData = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $monthlyRevenueData[] = [
+                'month' => $month->format('M'),
+                'revenue' => Booking::where('company_id', $company->id)
+                    ->whereIn('status', ['completed', 'confirmed'])
+                    ->whereYear('created_at', $month->year)
+                    ->whereMonth('created_at', $month->month)
+                    ->sum('final_price'),
+            ];
+        }
+
+        // Recent activity/notifications - limited to 5
+        $recentActivity = auth()->user()->notifications()
+            ->latest()
+            ->limit(5)
             ->get();
 
-        return view('company.dashboard', compact('stats', 'recentBookings', 'company'));
+        // Recent complaints
+        $recentComplaints = $company->complaints()
+            ->with(['booking.service'])
+            ->latest()
+            ->limit(3)
+            ->get();
+
+        // Payout stats
+        $payoutStats = [
+            'pending' => \App\Models\Payout::where('company_id', $company->id)->pending()->sum('payout_amount'),
+            'pending_count' => \App\Models\Payout::where('company_id', $company->id)->pending()->count(),
+            'approved' => \App\Models\Payout::where('company_id', $company->id)->approved()->sum('payout_amount'),
+            'approved_count' => \App\Models\Payout::where('company_id', $company->id)->approved()->count(),
+            'paid' => \App\Models\Payout::where('company_id', $company->id)->paid()->sum('payout_amount'),
+            'paid_count' => \App\Models\Payout::where('company_id', $company->id)->paid()->count(),
+            'total_commission' => \App\Models\Payout::where('company_id', $company->id)->sum('commission_amount'),
+        ];
+
+        // Recent payouts
+        $recentPayouts = \App\Models\Payout::where('company_id', $company->id)
+            ->with('booking')
+            ->latest()
+            ->limit(5)
+            ->get();
+
+        return view('company.dashboard', compact(
+            'stats',
+            'recentBookings',
+            'upcomingBookings',
+            'recentMessages',
+            'monthlyRevenueData',
+            'recentActivity',
+            'company',
+            'payoutStats',
+            'recentPayouts',
+            'recentComplaints'
+        ));
     }
 }

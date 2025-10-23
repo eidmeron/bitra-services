@@ -96,18 +96,78 @@
 
             <!-- Booking Options -->
             <div class="space-y-4 mb-6">
-                <h3 class="text-lg font-semibold border-b pb-2">Bokningsalternativ</h3>
+                <h3 class="text-lg font-semibold border-b pb-2">Bokningstyper</h3>
 
-                <div class="space-y-2">
+                <div class="space-y-4">
+                    <!-- One-time booking -->
                     <label class="flex items-center">
                         <input type="checkbox" name="one_time_booking" value="1" {{ old('one_time_booking', true) ? 'checked' : '' }} class="mr-2">
-                        <span>Engångsbokning</span>
+                        <span class="font-medium">📅 Engångsbokning</span>
                     </label>
 
+                    <!-- Enable subscriptions -->
                     <label class="flex items-center">
-                        <input type="checkbox" name="subscription_booking" value="1" {{ old('subscription_booking') ? 'checked' : '' }} class="mr-2">
-                        <span>Prenumerationsbokning</span>
+                        <input type="checkbox" name="subscription_booking" value="1" {{ old('subscription_booking') ? 'checked' : '' }} class="mr-2" id="subscription_checkbox">
+                        <span class="font-medium">🔄 Prenumerationsbokning</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Subscription Types (show when subscription is enabled) -->
+            <div class="space-y-4 mb-6" id="subscription_types_section" style="display: none;">
+                <h3 class="text-lg font-semibold border-b pb-2">Prenumerationstyper & Priser</h3>
+                <p class="text-sm text-gray-600 mb-4">Välj vilka prenumerationstyper som ska vara tillgängliga och ange multiplikatorer (1.00 = inget rabatt, 0.90 = 10% rabatt, 1.05 = 5% påslag)</p>
+
+                <!-- Daily -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="daily" {{ in_array('daily', old('subscription_types', [])) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">⏰ Dagligen</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="daily_multiplier" value="{{ old('daily_multiplier', 1.05) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 1.05 (5% påslag - daglig service är mer krävande)</p>
+                    </div>
+                </div>
+
+                <!-- Weekly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="weekly" {{ in_array('weekly', old('subscription_types', [])) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">📆 Veckovis</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="weekly_multiplier" value="{{ old('weekly_multiplier', 1.00) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 1.00 (ordinarie pris)</p>
+                    </div>
+                </div>
+
+                <!-- Bi-weekly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="biweekly" {{ in_array('biweekly', old('subscription_types', [])) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">📅 Varannan vecka</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="biweekly_multiplier" value="{{ old('biweekly_multiplier', 0.95) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 0.95 (5% rabatt)</p>
+                    </div>
+                </div>
+
+                <!-- Monthly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="monthly" {{ in_array('monthly', old('subscription_types', [])) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">🗓️ Månadsvis</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="monthly_multiplier" value="{{ old('monthly_multiplier', 0.90) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 0.90 (10% rabatt)</p>
+                    </div>
                 </div>
             </div>
 
@@ -158,5 +218,21 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // Show/hide subscription types when subscription checkbox is toggled
+    document.getElementById('subscription_checkbox').addEventListener('change', function() {
+        const typesSection = document.getElementById('subscription_types_section');
+        typesSection.style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Show subscription types on page load if checkbox is checked
+    if (document.getElementById('subscription_checkbox').checked) {
+        document.getElementById('subscription_types_section').style.display = 'block';
+    }
+</script>
+@endpush
+
 @endsection
 

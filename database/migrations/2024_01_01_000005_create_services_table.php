@@ -17,17 +17,25 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->text('description')->nullable();
+            $table->text('full_content')->nullable();
             $table->string('image')->nullable();
+            $table->json('features')->nullable();
+            $table->json('includes')->nullable();
+            $table->json('faq')->nullable();
+            $table->string('booking_url')->nullable();
             $table->string('icon')->nullable();
             $table->enum('status', ['active', 'inactive'])->default('active');
             
             // Pricing
             $table->decimal('base_price', 10, 2)->default(0);
             $table->decimal('discount_percent', 5, 2)->default(0);
+            $table->decimal('tax_rate', 5, 2)->default(25.00);
             
             // Booking types
             $table->boolean('one_time_booking')->default(true);
             $table->boolean('subscription_booking')->default(false);
+            $table->json('subscription_types')->nullable();
+            $table->decimal('daily_multiplier', 5, 2)->default(1.05);
             
             // ROT-avdrag
             $table->boolean('rot_eligible')->default(false);

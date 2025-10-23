@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
@@ -22,6 +23,9 @@ class Booking extends Model
         'service_id',
         'form_id',
         'city_id',
+        'customer_type',
+        'org_number',
+        'personnummer',
         'booking_type',
         'subscription_frequency',
         'customer_name',
@@ -32,9 +36,14 @@ class Booking extends Model
         'base_price',
         'variable_additions',
         'city_multiplier',
+        'subscription_multiplier',
+        'subtotal',
+        'tax_rate',
+        'tax_amount',
         'rot_deduction',
         'discount_amount',
         'final_price',
+        'total_with_tax',
         'status',
         'preferred_date',
         'assigned_at',
@@ -46,9 +55,14 @@ class Booking extends Model
         'base_price' => 'decimal:2',
         'variable_additions' => 'decimal:2',
         'city_multiplier' => 'decimal:2',
+        'subscription_multiplier' => 'decimal:2',
+        'subtotal' => 'decimal:2',
+        'tax_rate' => 'decimal:2',
+        'tax_amount' => 'decimal:2',
         'rot_deduction' => 'decimal:2',
         'discount_amount' => 'decimal:2',
         'final_price' => 'decimal:2',
+        'total_with_tax' => 'decimal:2',
         'preferred_date' => 'datetime',
         'assigned_at' => 'datetime',
         'completed_at' => 'datetime',
@@ -95,9 +109,37 @@ class Booking extends Model
         return $this->hasOne(Review::class);
     }
 
+    public function chats(): HasMany
+    {
+        return $this->hasMany(BookingChat::class);
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
+    }
+
+    public function extraFees(): HasMany
+    {
+        return $this->hasMany(ExtraFee::class);
+    }
+
     public function canBeReviewed(): bool
     {
         return $this->status === 'completed' && !$this->review;
+    }
+
+    public function getTotalExtraFeesAttribute(): float
+    {
+        return (float) $this->extraFees()
+            ->where('status', 'approved')
+            ->sum('amount');
+    }
+
+    public function getTotalWithExtraFeesAttribute(): float
+    {
+        $baseTotal = $this->total_with_tax ?? $this->final_price;
+        return $baseTotal + $this->total_extra_fees;
     }
 
     public function scopePending($query)
@@ -123,5 +165,10 @@ class Booking extends Model
     public function scopeCancelled($query)
     {
         return $query->where('status', 'cancelled');
+    }
+
+    public function payout(): HasOne
+    {
+        return $this->hasOne(Payout::class);
     }
 }

@@ -21,6 +21,14 @@ class FormBuilderRequest extends FormRequest
      */
     protected function prepareForValidation(): void
     {
+        // Handle checkbox - if not present in request, set to false (unchecked)
+        if (!$this->has('redirect_after_submit')) {
+            $this->merge(['redirect_after_submit' => false]);
+        } else {
+            // Convert "1" to true, anything else to false
+            $this->merge(['redirect_after_submit' => $this->input('redirect_after_submit') === '1' || $this->input('redirect_after_submit') === true]);
+        }
+        
         // Decode form_schema if it's a JSON string
         if ($this->has('form_schema') && is_string($this->form_schema)) {
             $decoded = json_decode($this->form_schema, true);

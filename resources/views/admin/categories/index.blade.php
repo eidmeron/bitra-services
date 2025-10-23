@@ -3,29 +3,53 @@
 @section('title', 'Kategorier')
 
 @section('content')
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-2xl font-bold">Kategorier</h2>
-    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary">
-        + Skapa ny kategori
-    </a>
+<div class="mb-8">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 class="text-3xl font-bold text-gray-900 flex items-center">
+                <span class="text-4xl mr-3">📂</span>
+                Kategorier
+            </h2>
+            <p class="text-gray-600 mt-2">Hantera alla tjänstkategorier och deras inställningar</p>
+        </div>
+        <a href="{{ route('admin.categories.create') }}" class="flex items-center px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+            <span class="mr-2">➕</span>
+            Skapa ny kategori
+        </a>
+    </div>
 </div>
 
-<!-- Filters -->
-<div class="card mb-6">
-    <form method="GET" class="flex space-x-4">
-        <input 
-            type="text" 
-            name="search" 
-            placeholder="Sök kategori..." 
-            value="{{ request('search') }}"
-            class="form-input flex-1"
-        >
-        <select name="status" class="form-input" onchange="this.form.submit()">
-            <option value="">Alla statusar</option>
-            <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktiv</option>
-            <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>Inaktiv</option>
-        </select>
-        <button type="submit" class="btn btn-primary">Sök</button>
+<!-- Enhanced Filters -->
+<div class="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-200">
+    <div class="flex items-center mb-4">
+        <span class="text-xl mr-2">🔍</span>
+        <h3 class="text-lg font-semibold text-gray-900">Filtrera kategorier</h3>
+    </div>
+    <form method="GET" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Sök kategori</label>
+            <input 
+                type="text" 
+                name="search" 
+                placeholder="Sök efter kategorinamn..." 
+                value="{{ request('search') }}"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+            <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" onchange="this.form.submit()">
+                <option value="">Alla statusar</option>
+                <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>✅ Aktiv</option>
+                <option value="inactive" {{ request('status') === 'inactive' ? 'selected' : '' }}>⏸️ Inaktiv</option>
+            </select>
+        </div>
+        <div class="flex items-end">
+            <button type="submit" class="w-full flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-all">
+                <span class="mr-2">🔍</span>
+                Sök
+            </button>
+        </div>
     </form>
 </div>
 

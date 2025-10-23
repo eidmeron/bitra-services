@@ -96,23 +96,93 @@
                         <label class="form-label">Rabatt (%)</label>
                         <input type="number" name="discount_percent" value="{{ old('discount_percent', $service->discount_percent) }}" step="0.01" min="0" max="100" class="form-input">
                     </div>
+
+                    <div>
+                        <label class="form-label">Moms (%)</label>
+                        <input type="number" name="tax_rate" value="{{ old('tax_rate', $service->tax_rate) }}" step="0.01" min="0" max="100" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 25%</p>
+                    </div>
                 </div>
             </div>
 
             <!-- Booking Options -->
             <div class="space-y-4 mb-6">
-                <h3 class="text-lg font-semibold border-b pb-2">Bokningsalternativ</h3>
+                <h3 class="text-lg font-semibold border-b pb-2">Bokningstyper</h3>
 
-                <div class="space-y-2">
+                <div class="space-y-4">
+                    <!-- One-time booking -->
                     <label class="flex items-center">
                         <input type="checkbox" name="one_time_booking" value="1" {{ old('one_time_booking', $service->one_time_booking) ? 'checked' : '' }} class="mr-2">
-                        <span>Engångsbokning</span>
+                        <span class="font-medium">📅 Engångsbokning</span>
                     </label>
 
+                    <!-- Enable subscriptions -->
                     <label class="flex items-center">
-                        <input type="checkbox" name="subscription_booking" value="1" {{ old('subscription_booking', $service->subscription_booking) ? 'checked' : '' }} class="mr-2">
-                        <span>Prenumerationsbokning</span>
+                        <input type="checkbox" name="subscription_booking" value="1" {{ old('subscription_booking', $service->subscription_booking) ? 'checked' : '' }} class="mr-2" id="subscription_checkbox">
+                        <span class="font-medium">🔄 Prenumerationsbokning</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Subscription Types (show when subscription is enabled) -->
+            <div class="space-y-4 mb-6" id="subscription_types_section" style="display: {{ old('subscription_booking', $service->subscription_booking) ? 'block' : 'none' }};">
+                <h3 class="text-lg font-semibold border-b pb-2">Prenumerationstyper & Priser</h3>
+                <p class="text-sm text-gray-600 mb-4">Välj vilka prenumerationstyper som ska vara tillgängliga och ange multiplikatorer (1.00 = inget rabatt, 0.90 = 10% rabatt, 1.05 = 5% påslag)</p>
+
+                @php
+                    $subscriptionTypes = old('subscription_types', $service->subscription_types ?? []);
+                @endphp
+
+                <!-- Daily -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="daily" {{ in_array('daily', $subscriptionTypes) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">⏰ Dagligen</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="daily_multiplier" value="{{ old('daily_multiplier', $service->daily_multiplier) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 1.05 (5% påslag - daglig service är mer krävande)</p>
+                    </div>
+                </div>
+
+                <!-- Weekly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="weekly" {{ in_array('weekly', $subscriptionTypes) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">📆 Veckovis</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="weekly_multiplier" value="{{ old('weekly_multiplier', $service->weekly_multiplier) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 1.00 (ordinarie pris)</p>
+                    </div>
+                </div>
+
+                <!-- Bi-weekly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="biweekly" {{ in_array('biweekly', $subscriptionTypes) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">📅 Varannan vecka</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="biweekly_multiplier" value="{{ old('biweekly_multiplier', $service->biweekly_multiplier) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 0.95 (5% rabatt)</p>
+                    </div>
+                </div>
+
+                <!-- Monthly -->
+                <div class="border rounded-lg p-4">
+                    <label class="flex items-center mb-3">
+                        <input type="checkbox" name="subscription_types[]" value="monthly" {{ in_array('monthly', $subscriptionTypes) ? 'checked' : '' }} class="mr-2">
+                        <span class="font-medium text-lg">🗓️ Månadsvis</span>
+                    </label>
+                    <div>
+                        <label class="form-label text-sm">Multiplikator</label>
+                        <input type="number" name="monthly_multiplier" value="{{ old('monthly_multiplier', $service->monthly_multiplier) }}" step="0.01" min="0" max="2" class="form-input">
+                        <p class="text-xs text-gray-500 mt-1">Standard: 0.90 (10% rabatt)</p>
+                    </div>
                 </div>
             </div>
 
@@ -131,6 +201,165 @@
                         <input type="number" name="rot_percent" value="{{ old('rot_percent', $service->rot_percent) }}" step="0.01" min="0" max="100" class="form-input">
                     </div>
                 </div>
+            </div>
+
+            <!-- Content Management -->
+            <div class="space-y-4 mb-6">
+                <h3 class="text-lg font-semibold border-b pb-2">📝 Innehåll & Beskrivningar</h3>
+
+                <!-- Full Content -->
+                <div>
+                    <label class="form-label">Fullständig Beskrivning</label>
+                    <textarea name="full_content" rows="6" class="form-input" placeholder="Detaljerad beskrivning av tjänsten...">{{ old('full_content', $service->full_content) }}</textarea>
+                    <p class="text-xs text-gray-500 mt-1">Detta visas under "Om Tjänsten" på tjänstesidan</p>
+                </div>
+            </div>
+
+            <!-- What's Included -->
+            <div class="space-y-4 mb-6" x-data="{ 
+                includes: {{ json_encode(old('includes', $service->includes ?? [])) }},
+                addInclude() {
+                    this.includes.push('');
+                },
+                removeInclude(index) {
+                    this.includes.splice(index, 1);
+                }
+            }">
+                <h3 class="text-lg font-semibold border-b pb-2 flex justify-between items-center">
+                    <span>✅ Vad Ingår</span>
+                    <button type="button" @click="addInclude()" class="btn btn-sm btn-primary">
+                        + Lägg till
+                    </button>
+                </h3>
+
+                <template x-for="(include, index) in includes" :key="index">
+                    <div class="flex gap-2">
+                        <input type="text" 
+                               :name="'includes[' + index + ']'" 
+                               x-model="includes[index]" 
+                               class="form-input flex-1" 
+                               placeholder="T.ex. Städning av alla rum">
+                        <button type="button" @click="removeInclude(index)" class="btn btn-danger">
+                            🗑️
+                        </button>
+                    </div>
+                </template>
+
+                <template x-if="includes.length === 0">
+                    <p class="text-gray-500 text-sm italic">Inga inkluderingar tillagda. Klicka "+ Lägg till" för att lägga till.</p>
+                </template>
+            </div>
+
+            <!-- Features -->
+            <div class="space-y-4 mb-6" x-data="{ 
+                features: {{ json_encode(old('features', $service->features ?? [])) }},
+                addFeature() {
+                    this.features.push({ icon: '✨', title: '', description: '' });
+                },
+                removeFeature(index) {
+                    this.features.splice(index, 1);
+                }
+            }">
+                <h3 class="text-lg font-semibold border-b pb-2 flex justify-between items-center">
+                    <span>⭐ Funktioner & Fördelar</span>
+                    <button type="button" @click="addFeature()" class="btn btn-sm btn-primary">
+                        + Lägg till Funktion
+                    </button>
+                </h3>
+
+                <template x-for="(feature, index) in features" :key="index">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-semibold text-gray-700">Funktion <span x-text="index + 1"></span></span>
+                            <button type="button" @click="removeFeature(index)" class="text-red-600 hover:text-red-800">
+                                🗑️ Ta bort
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <div>
+                                <label class="form-label text-sm">Ikon (emoji)</label>
+                                <input type="text" 
+                                       :name="'features[' + index + '][icon]'" 
+                                       x-model="features[index].icon" 
+                                       class="form-input" 
+                                       placeholder="✨">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="form-label text-sm">Titel</label>
+                                <input type="text" 
+                                       :name="'features[' + index + '][title]'" 
+                                       x-model="features[index].title" 
+                                       class="form-input" 
+                                       placeholder="T.ex. Professionell Utrustning">
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label class="form-label text-sm">Beskrivning</label>
+                            <textarea 
+                                :name="'features[' + index + '][description]'" 
+                                x-model="features[index].description" 
+                                rows="2" 
+                                class="form-input" 
+                                placeholder="Beskriv fördelen eller funktionen..."></textarea>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="features.length === 0">
+                    <p class="text-gray-500 text-sm italic">Inga funktioner tillagda. Klicka "+ Lägg till Funktion" för att lägga till.</p>
+                </template>
+            </div>
+
+            <!-- FAQ -->
+            <div class="space-y-4 mb-6" x-data="{ 
+                faq: {{ json_encode(old('faq', $service->faq ?? [])) }},
+                addFaq() {
+                    this.faq.push({ question: '', answer: '' });
+                },
+                removeFaq(index) {
+                    this.faq.splice(index, 1);
+                }
+            }">
+                <h3 class="text-lg font-semibold border-b pb-2 flex justify-between items-center">
+                    <span>❓ Vanliga Frågor (FAQ)</span>
+                    <button type="button" @click="addFaq()" class="btn btn-sm btn-primary">
+                        + Lägg till Fråga
+                    </button>
+                </h3>
+
+                <template x-for="(item, index) in faq" :key="index">
+                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="font-semibold text-gray-700">Fråga <span x-text="index + 1"></span></span>
+                            <button type="button" @click="removeFaq(index)" class="text-red-600 hover:text-red-800">
+                                🗑️ Ta bort
+                            </button>
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="form-label text-sm">Fråga</label>
+                                <input type="text" 
+                                       :name="'faq[' + index + '][question]'" 
+                                       x-model="faq[index].question" 
+                                       class="form-input" 
+                                       placeholder="T.ex. Hur lång tid tar städningen?">
+                            </div>
+                            <div>
+                                <label class="form-label text-sm">Svar</label>
+                                <textarea 
+                                    :name="'faq[' + index + '][answer]'" 
+                                    x-model="faq[index].answer" 
+                                    rows="3" 
+                                    class="form-input" 
+                                    placeholder="Svaret på frågan..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <template x-if="faq.length === 0">
+                    <p class="text-gray-500 text-sm italic">Inga frågor tillagda. Klicka "+ Lägg till Fråga" för att lägga till.</p>
+                </template>
             </div>
 
             <!-- Cities -->
@@ -180,5 +409,16 @@
         </form>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    // Show/hide subscription types when subscription checkbox is toggled
+    document.getElementById('subscription_checkbox').addEventListener('change', function() {
+        const typesSection = document.getElementById('subscription_types_section');
+        typesSection.style.display = this.checked ? 'block' : 'none';
+    });
+</script>
+@endpush
+
 @endsection
 

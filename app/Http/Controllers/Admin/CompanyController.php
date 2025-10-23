@@ -20,23 +20,64 @@ class CompanyController extends Controller
 {
     public function index(Request $request): View
     {
-        $companies = Company::with('user')
-            ->when($request->status, function ($query, $status) {
-                $query->where('status', $status);
-            })
-            ->when($request->search, function ($query, $search) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('company_org_number', 'like', "%{$search}%")
-                        ->orWhere('company_email', 'like', "%{$search}%")
-                        ->orWhereHas('user', function ($userQuery) use ($search) {
-                            $userQuery->where('email', 'like', "%{$search}%");
-                        });
-                });
-            })
-            ->latest()
-            ->paginate(20);
+        $query = Company::with(['user', 'services', 'cities']);
 
-        return view('admin.companies.index', compact('companies'));
+        // Search
+        if ($request->filled('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('company_name', 'like', "%{$search}%")
+                    ->orWhere('company_org_number', 'like', "%{$search}%")
+                    ->orWhere('company_email', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        // Date filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->get('date_from'));
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->get('date_to'));
+        }
+
+        // Sort
+        $sortBy = $request->get('sort', 'latest');
+        switch ($sortBy) {
+            case 'latest':
+                $query->latest();
+                break;
+            case 'oldest':
+                $query->oldest();
+                break;
+            case 'name':
+                $query->orderBy('company_name');
+                break;
+            default:
+                $query->latest();
+        }
+
+        $companies = $query->paginate(20);
+
+        // Statistics
+        $stats = [
+            'total_companies' => Company::count(),
+            'active_companies' => Company::where('status', 'active')->count(),
+            'pending_companies' => Company::where('status', 'pending')->count(),
+            'inactive_companies' => Company::where('status', 'inactive')->count(),
+            'new_today' => Company::whereDate('created_at', today())->count(),
+            'new_this_week' => Company::whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()])->count(),
+            'new_this_month' => Company::whereMonth('created_at', now()->month)->count(),
+        ];
+
+        return view('admin.companies.index', compact('companies', 'stats'));
     }
 
     public function create(): View
@@ -68,6 +109,11 @@ class CompanyController extends Controller
 
             $company = Company::create([
                 'user_id' => $user->id,
+                'company_name' => $companyData['company_name'],
+                'description' => $companyData['description'] ?? null,
+                'address' => $companyData['address'] ?? null,
+                'city' => $companyData['city'] ?? null,
+                'postal_code' => $companyData['postal_code'] ?? null,
                 'company_logo' => $companyData['company_logo'] ?? null,
                 'company_email' => $companyData['company_email'],
                 'company_number' => $companyData['company_number'],
@@ -93,9 +139,24 @@ class CompanyController extends Controller
 
     public function show(Company $company): View
     {
-        $company->load(['user', 'services', 'cities', 'bookings']);
+        $company->load([
+            'user', 
+            'services', 
+            'cities', 
+            'bookings.user',
+            'reviews' => function($query) {
+                $query->with('booking.user')->latest();
+            },
+            'commissionSetting',
+            'payouts' => function($query) {
+                $query->latest()->limit(10);
+            }
+        ]);
 
-        return view('admin.companies.show', compact('company'));
+        // Get recent chat messages for this company (disabled - chatbot functionality removed)
+        $recentChats = collect([]);
+
+        return view('admin.companies.show', compact('company', 'recentChats'));
     }
 
     public function edit(Company $company): View
@@ -130,6 +191,11 @@ class CompanyController extends Controller
             }
 
             $company->update([
+                'company_name' => $companyData['company_name'],
+                'description' => $companyData['description'] ?? null,
+                'address' => $companyData['address'] ?? null,
+                'city' => $companyData['city'] ?? null,
+                'postal_code' => $companyData['postal_code'] ?? null,
                 'company_logo' => $companyData['company_logo'] ?? $company->company_logo,
                 'company_email' => $companyData['company_email'],
                 'company_number' => $companyData['company_number'],

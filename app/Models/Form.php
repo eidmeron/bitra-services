@@ -75,4 +75,10 @@ class Form extends Model
     {
         return "[bitra_form id=\"{$this->shortcode}\"]";
     }
+
+    // Alias for public_token for backward compatibility
+    public function getTokenAttribute(): ?string
+    {
+        return $this->public_token;
+    }
 }

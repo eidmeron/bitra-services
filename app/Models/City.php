@@ -21,12 +21,14 @@ class City extends Model
         'description',
         'area_map_selection',
         'city_multiplier',
+        'price_multiplier',
         'status',
     ];
 
     protected $casts = [
         'area_map_selection' => 'array',
         'city_multiplier' => 'decimal:2',
+        'price_multiplier' => 'decimal:2',
     ];
 
     public function zone(): BelongsTo
@@ -54,5 +56,13 @@ class City extends Model
     public function slotTimes(): HasMany
     {
         return $this->hasMany(SlotTime::class);
+    }
+
+    /**
+     * Scope a query to only include active cities
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
     }
 }

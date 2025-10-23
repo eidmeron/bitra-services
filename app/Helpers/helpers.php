@@ -12,6 +12,26 @@ if (!function_exists('formatPrice')) {
     }
 }
 
+if (!function_exists('bookingStatusLabel')) {
+    /**
+     * Get Swedish label for booking status
+     */
+    function bookingStatusLabel(string $status): string
+    {
+        $labels = [
+            'pending' => 'Väntande',
+            'assigned' => 'Tilldelad',
+            'confirmed' => 'Bekräftad',
+            'in_progress' => 'Pågående',
+            'completed' => 'Slutförd',
+            'cancelled' => 'Avbruten',
+            'rejected' => 'Avvisad',
+        ];
+
+        return $labels[$status] ?? ucfirst($status);
+    }
+}
+
 if (!function_exists('bookingStatusBadge')) {
     /**
      * Get HTML badge for booking status
@@ -21,6 +41,7 @@ if (!function_exists('bookingStatusBadge')) {
         $badges = [
             'pending' => '<span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Väntande</span>',
             'assigned' => '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Tilldelad</span>',
+            'confirmed' => '<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Bekräftad</span>',
             'in_progress' => '<span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Pågående</span>',
             'completed' => '<span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Slutförd</span>',
             'cancelled' => '<span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">Avbruten</span>',
@@ -79,6 +100,82 @@ if (!function_exists('getSubscriptionFrequencyLabel')) {
         ];
 
         return $labels[$frequency] ?? 'Engångstjänst';
+    }
+}
+
+// ============================================
+// CMS Helper Functions
+// ============================================
+
+if (!function_exists('setting')) {
+    /**
+     * Get a site setting value
+     */
+    function setting(string $key, mixed $default = null): mixed
+    {
+        return \App\Models\SiteSetting::get($key, $default);
+    }
+}
+
+if (!function_exists('page_content')) {
+    /**
+     * Get page content by key
+     */
+    function page_content(string $key): ?\App\Models\PageContent
+    {
+        return \App\Models\PageContent::getByKey($key);
+    }
+}
+
+if (!function_exists('site_name')) {
+    /**
+     * Get site name
+     */
+    function site_name(): string
+    {
+        return setting('site_name', config('app.name'));
+    }
+}
+
+if (!function_exists('site_logo')) {
+    /**
+     * Get site logo URL
+     */
+    function site_logo(): ?string
+    {
+        $logo = setting('site_logo');
+        return $logo ? \Storage::url($logo) : null;
+    }
+}
+
+if (!function_exists('social_links')) {
+    /**
+     * Get social media links
+     */
+    function social_links(): array
+    {
+        return [
+            'facebook' => setting('social_facebook'),
+            'instagram' => setting('social_instagram'),
+            'linkedin' => setting('social_linkedin'),
+            'twitter' => setting('social_twitter'),
+        ];
+    }
+}
+
+if (!function_exists('contact_info')) {
+    /**
+     * Get contact information
+     */
+    function contact_info(): array
+    {
+        return [
+            'address' => setting('contact_address'),
+            'phone' => setting('contact_phone'),
+            'email' => setting('contact_email'),
+            'support_email' => setting('contact_support_email'),
+            'hours' => setting('contact_hours'),
+        ];
     }
 }
 

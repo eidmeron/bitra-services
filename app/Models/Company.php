@@ -16,14 +16,31 @@ class Company extends Model
 
     protected $fillable = [
         'user_id',
+        'company_name',
+        'description',
+        'address',
+        'city',
+        'postal_code',
         'company_logo',
         'company_email',
         'company_number',
         'company_org_number',
         'site',
+        'logo', // Alias for company_logo
+        'phone', // Alias for company_number
+        'email', // Alias for company_email
+        'org_number', // Alias for company_org_number
+        'zip_code', // Alias for postal_code
+        'website', // Alias for site
         'review_average',
         'review_count',
         'status',
+        'payout_method',
+        'swish_number',
+        'bank_name',
+        'clearing_number',
+        'account_number',
+        'payout_notes',
     ];
 
     protected $casts = [
@@ -58,10 +75,66 @@ class Company extends Model
         return $this->hasMany(Review::class);
     }
 
+    public function messages(): HasMany
+    {
+        return $this->hasMany(CompanyMessage::class);
+    }
+
+    public function commissionSetting(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CommissionSetting::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
+
     public function updateReviewStats(): void
     {
         $this->review_count = $this->reviews()->where('status', 'approved')->count();
         $this->review_average = $this->reviews()->where('status', 'approved')->avg('rating') ?? 0;
         $this->save();
+    }
+
+    // Accessors for backward compatibility
+    public function getLogoAttribute(): ?string
+    {
+        return $this->company_logo;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return $this->company_email;
+    }
+
+    public function getPhoneAttribute(): ?string
+    {
+        return $this->company_number;
+    }
+
+    public function getWebsiteAttribute(): ?string
+    {
+        return $this->site;
+    }
+
+    public function getReviewsAvgRatingAttribute(): ?float
+    {
+        return $this->review_average ? (float)$this->review_average : null;
+    }
+
+    public function getReviewsCountAttribute(): int
+    {
+        return $this->review_count ?? 0;
+    }
+
+    public function weeklyPayoutReports(): HasMany
+    {
+        return $this->hasMany(WeeklyPayoutReport::class);
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
     }
 }

@@ -28,6 +28,7 @@ return new class extends Migration
             
             // Conditional logic
             $table->json('conditional_logic')->nullable(); // {show_if: {field: 'id', value: 'x'}}
+            $table->json('validation_rules')->nullable();
             
             // Field options (for select, radio, checkbox)
             $table->json('field_options')->nullable();

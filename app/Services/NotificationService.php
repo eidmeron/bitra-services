@@ -5,59 +5,54 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Models\Booking;
+use App\Models\Company;
+use App\Models\Review;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
+use App\Models\PlatformReview;
+use App\Models\BookingChat;
+use Illuminate\Support\Facades\Cache;
 
-class NotificationService
+final class NotificationService
 {
-    public function notifyBookingCreated(Booking $booking): void
+    public function getNotificationCounts(): array
     {
-        $admins = User::where('type', 'admin')->get();
-
-        foreach ($admins as $admin) {
-            Log::info("Notifying admin {$admin->email} about new booking {$booking->booking_number}");
-            // TODO: Send email notification
-        }
+        return Cache::remember('admin_notification_counts', 300, function () {
+            return [
+                'new_bookings' => Booking::whereDate('created_at', today())->count(),
+                'new_users' => User::whereDate('created_at', today())->count(),
+                'new_companies' => Company::whereDate('created_at', today())->count(),
+                'new_company_reviews' => Review::whereDate('created_at', today())->count(),
+                'new_platform_reviews' => PlatformReview::whereDate('created_at', today())->count(),
+                'pending_company_reviews' => Review::where('status', 'pending')->count(),
+                'pending_platform_reviews' => PlatformReview::where('status', 'pending')->count(),
+                'pending_companies' => Company::where('status', 'pending')->count(),
+            ];
+        });
     }
 
-    public function notifyBookingAssigned(Booking $booking): void
+    public function getTotalNotifications(): int
     {
+        $counts = $this->getNotificationCounts();
+        return $counts['new_bookings'] + 
+               $counts['new_users'] + 
+               $counts['new_companies'] + 
+               $counts['new_company_reviews'] + 
+               $counts['new_platform_reviews'] + 
+               $counts['pending_company_reviews'] + 
+               $counts['pending_platform_reviews'] + 
+               $counts['pending_companies'];
+    }
+
+    public function clearCache(): void
+    {
+        Cache::forget('admin_notification_counts');
+    }
+
+    public function notifyNewChatMessage(BookingChat $chat, Booking $booking): void
+    {
+        // Send notification to company
         if ($booking->company && $booking->company->user) {
-            Log::info("Notifying company {$booking->company->user->email} about assigned booking {$booking->booking_number}");
-            // TODO: Send email notification
-        }
-
-        if ($booking->user) {
-            Log::info("Notifying user {$booking->user->email} about booking assignment");
-            // TODO: Send email notification
-        }
-    }
-
-    public function notifyBookingCompleted(Booking $booking): void
-    {
-        if ($booking->user) {
-            Log::info("Notifying user {$booking->user->email} that booking {$booking->booking_number} is completed");
-            // TODO: Send email notification with review request
-        }
-    }
-
-    public function notifyBookingCancelled(Booking $booking): void
-    {
-        if ($booking->company && $booking->company->user) {
-            Log::info("Notifying company {$booking->company->user->email} about cancelled booking {$booking->booking_number}");
-            // TODO: Send email notification
-        }
-    }
-
-    public function notifyNewReview(Booking $booking): void
-    {
-        $admins = User::where('type', 'admin')->get();
-
-        foreach ($admins as $admin) {
-            Log::info("Notifying admin {$admin->email} about new review for booking {$booking->booking_number}");
-            // TODO: Send email notification
+            $booking->company->user->notify(new \App\Notifications\NewChatMessageNotification($chat, $booking));
         }
     }
 }
-

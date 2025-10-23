@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.user')
 
 @section('title', 'Bokningsdetaljer')
 
@@ -33,6 +33,20 @@
                         <p class="font-medium">{{ $booking->city->name }}</p>
                     </div>
                     <div>
+                        <label class="text-sm text-gray-600">Kundtyp</label>
+                        <p class="font-medium">
+                            @if($booking->customer_type === 'company')
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    🏢 Företag
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    🏠 Privatperson
+                                </span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
                         <label class="text-sm text-gray-600">Bokningstyp</label>
                         <p class="font-medium">
                             @if($booking->booking_type === 'one_time')
@@ -42,6 +56,18 @@
                             @endif
                         </p>
                     </div>
+                    @if($booking->customer_type === 'company' && $booking->org_number)
+                        <div>
+                            <label class="text-sm text-gray-600">Organisationsnummer</label>
+                            <p class="font-mono font-medium">{{ $booking->org_number }}</p>
+                        </div>
+                    @endif
+                    @if($booking->customer_type === 'private' && $booking->personnummer)
+                        <div>
+                            <label class="text-sm text-gray-600">Personnummer (ROT)</label>
+                            <p class="font-mono font-medium">{{ $booking->personnummer }}</p>
+                        </div>
+                    @endif
                     @if($booking->preferred_date)
                         <div>
                             <label class="text-sm text-gray-600">Önskat datum</label>
@@ -52,7 +78,7 @@
             </div>
 
             <!-- Form Data -->
-            @if(count($booking->form_data) > 0)
+            @if($booking->form_data && is_array($booking->form_data) && count($booking->form_data) > 0)
                 <div class="border-t pt-4 mt-4">
                     <h4 class="font-semibold mb-3">Dina uppgifter</h4>
                     <div class="bg-gray-50 p-4 rounded">
@@ -106,6 +132,66 @@
                 </div>
             @endif
 
+            <!-- Chat Section -->
+            @if(in_array($booking->status, ['assigned', 'in_progress']) && $booking->company)
+                <div class="border-t pt-4 mt-4" id="chat">
+                    <h4 class="font-semibold mb-3 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                        </svg>
+                        Chatta med {{ $booking->company->company_name ?? 'företaget' }}
+                    </h4>
+                    
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
+                        <!-- Chat Messages -->
+                        <div class="bg-white rounded-lg p-4 mb-4 max-h-96 overflow-y-auto" id="chatMessages">
+                            @forelse($booking->chats()->orderBy('created_at', 'asc')->get() as $chat)
+                                <div class="mb-4 {{ $chat->sender_type === 'user' ? 'text-right' : 'text-left' }}">
+                                    <div class="inline-block max-w-xs lg:max-w-md">
+                                        <div class="text-xs text-gray-500 mb-1">
+                                            {{ $chat->sender_type === 'user' ? 'Du' : $booking->company->company_name }}
+                                            <span class="ml-1">{{ $chat->created_at->diffForHumans() }}</span>
+                                        </div>
+                                        <div class="rounded-lg px-4 py-2 {{ $chat->sender_type === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-900' }}">
+                                            {{ $chat->message }}
+                                        </div>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="text-center py-8 text-gray-500">
+                                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                    </svg>
+                                    <p class="text-sm">Inga meddelanden ännu. Starta konversationen!</p>
+                                </div>
+                            @endforelse
+                        </div>
+
+                        <!-- Send Message Form -->
+                        <form method="POST" action="{{ route('user.bookings.chat.send', $booking) }}" class="flex space-x-2">
+                            @csrf
+                            <input type="hidden" name="sender_type" value="user">
+                            <input 
+                                type="text" 
+                                name="message" 
+                                class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                placeholder="Skriv ditt meddelande..."
+                                required
+                            >
+                            <button 
+                                type="submit" 
+                                class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition flex items-center"
+                            >
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                                </svg>
+                                Skicka
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endif
+
             <!-- Review Section -->
             @if($booking->canBeReviewed())
                 <div class="border-t pt-4 mt-4" id="review">
@@ -116,18 +202,28 @@
                         </p>
                     </div>
 
-                    <form method="POST" action="{{ route('user.bookings.review', $booking) }}">
+                    <form method="POST" action="{{ route('user.bookings.review', $booking) }}" x-data="{ rating: 0 }">
                         @csrf
                         <div class="mb-4">
                             <label class="form-label">Betyg *</label>
                             <div class="flex space-x-2">
                                 @for($i = 1; $i <= 5; $i++)
-                                    <label class="cursor-pointer">
-                                        <input type="radio" name="rating" value="{{ $i }}" required class="hidden peer">
-                                        <span class="text-3xl peer-checked:text-yellow-400 text-gray-300 hover:text-yellow-400">★</span>
+                                    <label class="cursor-pointer" @click="rating = {{ $i }}">
+                                        <input type="radio" name="rating" value="{{ $i }}" required class="hidden" x-model="rating">
+                                        <span 
+                                            class="text-4xl transition-colors duration-150"
+                                            :class="rating >= {{ $i }} ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'"
+                                        >★</span>
                                     </label>
                                 @endfor
                             </div>
+                            <p class="text-sm text-gray-500 mt-2">
+                                <span x-show="rating === 1">⭐ Dålig</span>
+                                <span x-show="rating === 2">⭐⭐ Mindre bra</span>
+                                <span x-show="rating === 3">⭐⭐⭐ Okej</span>
+                                <span x-show="rating === 4">⭐⭐⭐⭐ Bra</span>
+                                <span x-show="rating === 5">⭐⭐⭐⭐⭐ Utmärkt!</span>
+                            </p>
                         </div>
 
                         <div class="mb-4">
@@ -136,7 +232,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary">
-                            Skicka recension
+                            📝 Skicka recension
                         </button>
                     </form>
                 </div>
@@ -164,6 +260,21 @@
                 </div>
             @endif
 
+            <!-- Complaint Section -->
+            @if($booking->status === 'completed')
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="font-semibold mb-3">📝 Reklamation</h4>
+                    <div class="bg-yellow-50 border border-yellow-200 p-4 rounded">
+                        <p class="text-sm text-yellow-800 mb-3">
+                            Om du inte är nöjd med tjänsten kan du skapa en reklamation.
+                        </p>
+                        <a href="{{ route('complaints.create', $booking) }}" class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors">
+                            📝 Skapa reklamation
+                        </a>
+                    </div>
+                </div>
+            @endif
+
             <!-- Cancel Option -->
             @if(in_array($booking->status, ['pending', 'assigned']))
                 <div class="border-t pt-4 mt-4">
@@ -177,6 +288,88 @@
             @endif
         </div>
     </div>
+
+    <!-- Chat Auto-Refresh and Sound Notification -->
+    @if(in_array($booking->status, ['assigned', 'in_progress']) && $booking->company)
+    <script>
+        let lastMessageCount = {{ $booking->chats->count() }};
+        let chatContainer = document.getElementById('chatMessages');
+        
+        // Play notification sound
+        function playNotificationSound() {
+            // Create a simple notification beep using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800; // Frequency in Hz
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+        
+        // Check for new messages every 10 seconds
+        setInterval(function() {
+            fetch(window.location.href, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newChatContainer = doc.getElementById('chatMessages');
+                
+                if (newChatContainer) {
+                    const currentMessageCount = newChatContainer.querySelectorAll('.mb-4').length;
+                    
+                    if (currentMessageCount > lastMessageCount) {
+                        // New message received
+                        chatContainer.innerHTML = newChatContainer.innerHTML;
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                        
+                        // Play notification sound
+                        playNotificationSound();
+                        
+                        // Show browser notification
+                        if ("Notification" in window && Notification.permission === "granted") {
+                            new Notification("💬 Nytt meddelande", {
+                                body: "Du har fått ett nytt meddelande från företaget",
+                                icon: "/favicon.ico"
+                            });
+                        }
+                        
+                        lastMessageCount = currentMessageCount;
+                    }
+                }
+            })
+            .catch(error => console.error('Error checking for new messages:', error));
+        }, 10000); // Check every 10 seconds
+        
+        // Request notification permission on page load
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        
+        // Auto-scroll to bottom of chat on page load
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        // Auto-scroll to chat section if hash is present
+        if (window.location.hash === '#chat') {
+            document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+    @endif
 
     <!-- Sidebar -->
     <div class="space-y-6">
@@ -210,9 +403,23 @@
                         <span>-{{ number_format($booking->discount_amount, 2, ',', ' ') }} kr</span>
                     </div>
                 @endif
+                <div class="flex justify-between">
+                    <span>Delsumma:</span>
+                    <span>{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
+                    <span>{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                </div>
+                @if($booking->total_extra_fees > 0)
+                    <div class="flex justify-between text-blue-600">
+                        <span>Extra avgifter:</span>
+                        <span>+{{ number_format($booking->total_extra_fees, 2, ',', ' ') }} kr</span>
+                    </div>
+                @endif
                 <div class="border-t pt-2 mt-2 flex justify-between font-bold text-lg">
-                    <span>Totalt:</span>
-                    <span>{{ number_format($booking->final_price, 2, ',', ' ') }} kr</span>
+                    <span>Totalt (inkl. moms):</span>
+                    <span>{{ number_format($booking->total_with_extra_fees, 2, ',', ' ') }} kr</span>
                 </div>
             </div>
         </div>
@@ -231,6 +438,14 @@
             @elseif($booking->status === 'cancelled')
                 <p class="text-sm text-red-700">Denna bokning har avbrutits.</p>
             @endif
+        </div>
+
+        <!-- PDF Download -->
+        <div class="card">
+            <h4 class="font-semibold mb-3">📄 Dokument</h4>
+            <a href="{{ route('booking.pdf.download', $booking) }}" class="w-full btn btn-primary flex items-center justify-center">
+                📄 Ladda ner PDF-sammanfattning
+            </a>
         </div>
 
         <!-- Support -->

@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('companies', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->string('company_name')->nullable();
+            $table->text('description')->nullable();
+            $table->text('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('postal_code')->nullable();
             $table->string('company_logo')->nullable();
             $table->string('company_email');
             $table->string('company_number');
@@ -22,6 +27,15 @@ return new class extends Migration
             $table->decimal('review_average', 3, 2)->default(0);
             $table->integer('review_count')->default(0);
             $table->enum('status', ['active', 'inactive', 'pending'])->default('pending');
+            
+            // Payout information
+            $table->string('payout_method')->nullable(); // 'swish', 'bank_account'
+            $table->string('swish_number')->nullable();
+            $table->string('bank_name')->nullable();
+            $table->string('clearing_number')->nullable();
+            $table->string('account_number')->nullable();
+            $table->text('payout_notes')->nullable();
+            
             $table->timestamps();
         });
     }

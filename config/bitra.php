@@ -60,7 +60,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Subscription Frequencies
+    | Subscription Settings
     |--------------------------------------------------------------------------
     */
     'subscription_frequencies' => [
@@ -68,6 +68,14 @@ return [
         'weekly' => 'Veckovis',
         'biweekly' => 'Varannan vecka',
         'monthly' => 'Månadsvis',
+    ],
+
+    // Default subscription multipliers (can be customized per service)
+    'subscription_multipliers' => [
+        'daily' => 1.05,       // 5% premium for daily
+        'weekly' => 1.00,      // No discount for weekly
+        'biweekly' => 0.95,    // 5% discount for bi-weekly
+        'monthly' => 0.90,     // 10% discount for monthly
     ],
 
     /*

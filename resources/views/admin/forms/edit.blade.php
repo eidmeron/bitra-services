@@ -26,12 +26,47 @@
         </div>
     </div>
 
+    <script>
+        // Set form schema BEFORE Alpine initializes
+        window.formSchema = {!! json_encode($form->fields->map(function($field) {
+            return [
+                'id' => (string)$field->id,
+                'type' => $field->field_type,
+                'label' => $field->field_label,
+                'name' => $field->field_name,
+                'placeholder' => $field->placeholder_text ?? '',
+                'helpText' => $field->help_text ?? '',
+                'width' => $field->field_width,
+                'required' => (bool)$field->required,
+                'options' => $field->field_options ?? [],
+                'pricingRules' => $field->pricing_rules ?? ['pricePerUnit' => 0],
+                'validationRules' => $field->validation_rules ?? [
+                    'minLength' => null,
+                    'maxLength' => null,
+                    'min' => null,
+                    'max' => null,
+                    'pattern' => null
+                ],
+                'conditionalLogic' => $field->conditional_logic ?? [
+                    'operator' => 'and',
+                    'rules' => []
+                ],
+            ];
+        })) !!};
+        console.log('✅ window.formSchema set EARLY:', window.formSchema);
+    </script>
+
     <div x-data="formBuilder()" x-init="init()">
         <!-- Main Form Settings -->
         <div class="card mb-6">
             <h3 class="text-xl font-semibold mb-4">Formulärinställningar</h3>
             
-            <form method="POST" action="{{ route('admin.forms.update', $form) }}" id="form_builder_form">
+            <form 
+                method="POST" 
+                action="{{ route('admin.forms.update', $form) }}" 
+                id="form_builder_form"
+                @submit="document.getElementById('form_schema_input').value = JSON.stringify(fields); console.log('📤 Submitting form with fields:', fields)"
+            >
                 @csrf
                 @method('PUT')
 
@@ -106,6 +141,9 @@
                         <button @click="addField('phone')" class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 transition">
                             📞 Telefon
                         </button>
+                        <button @click="addField('address')" class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 transition">
+                            📍 Adress (Google Autocomplete)
+                        </button>
                         <button @click="addField('textarea')" class="w-full text-left px-4 py-2 border rounded hover:bg-gray-50 transition">
                             📄 Textområde
                         </button>
@@ -142,12 +180,18 @@
                 <div class="card">
                     <h3 class="text-lg font-semibold mb-4">Formulärförhandsvisning</h3>
                     
-                    <div id="form-canvas" class="space-y-4 min-h-[400px]">
+                    <div id="form-canvas" class="flex flex-wrap gap-4 min-h-[400px]">
                         <template x-for="(field, index) in fields" :key="field.id">
                             <div 
                                 class="border rounded-lg p-4 hover:border-blue-500 cursor-pointer transition"
-                                :class="{'border-blue-500 bg-blue-50': selectedField?.id === field.id}"
-                                @click="selectedField = field"
+                                :class="{
+                                    'border-blue-500 bg-blue-50': selectedField?.id === field.id,
+                                    'w-full': field.width == '100',
+                                    'w-[calc(50%-0.5rem)]': field.width == '50',
+                                    'w-[calc(33.333%-0.67rem)]': field.width == '33',
+                                    'w-[calc(25%-0.75rem)]': field.width == '25'
+                                }"
+                                @click="selectedField = field; console.log('Selected field:', field.id, field.label, 'Conditional Logic:', field.conditionalLogic)"mmer
                             >
                                 <div class="flex justify-between items-start">
                                     <div class="flex-1">
@@ -166,6 +210,19 @@
                                             >
                                         </template>
                                         
+                                        <template x-if="field.type === 'address'">
+                                            <div class="relative">
+                                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">📍</span>
+                                                <input 
+                                                    type="text" 
+                                                    :placeholder="field.placeholder || 'Börja skriva din adress...'"
+                                                    class="w-full pl-10 pr-3 py-2 border rounded bg-gray-50"
+                                                    disabled
+                                                >
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">🔍 Google Maps autocomplete</p>
+                                        </template>
+                                        
                                         <template x-if="field.type === 'textarea'">
                                             <textarea 
                                                 :placeholder="field.placeholder"
@@ -175,13 +232,33 @@
                                             ></textarea>
                                         </template>
                                         
-                                        <template x-if="field.type === 'number' || field.type === 'slider'">
+                                        <template x-if="field.type === 'number'">                                                                                                        
                                             <input 
                                                 type="number" 
                                                 :placeholder="field.placeholder"
                                                 class="w-full px-3 py-2 border rounded bg-gray-50"
                                                 disabled
                                             >
+                                        </template>
+                                        
+                                        <template x-if="field.type === 'slider'">
+                                            <div class="w-full">
+                                                <div class="flex items-center space-x-4">
+                                                    <input 
+                                                        type="range" 
+                                                        :min="field.validationRules?.min || 0"
+                                                        :max="field.validationRules?.max || 100"
+                                                        :step="field.validationRules?.step || 1"
+                                                        class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                                                        disabled
+                                                    >
+                                                    <span class="text-sm text-gray-600 min-w-[3rem] text-center" x-text="field.validationRules?.min || 0"></span>
+                                                </div>
+                                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                                    <span x-text="field.validationRules?.min || 0"></span>
+                                                    <span x-text="field.validationRules?.max || 100"></span>
+                                                </div>
+                                            </div>
                                         </template>
                                         
                                         <template x-if="field.type === 'select'">
@@ -331,6 +408,18 @@
                                         class="w-full px-2 py-1 border rounded text-sm"
                                     >
                                 </div>
+                                <div>
+                                    <label class="text-xs text-gray-600">Enhetsetikett (visas efter pris)</label>
+                                    <input 
+                                        type="text" 
+                                        x-model="selectedField.pricingRules.unitLabel"
+                                        placeholder="t.ex. kr/st, kr/kvm, kr/fönster"
+                                        class="w-full px-2 py-1 border rounded text-sm"
+                                    >
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Exempel: "kr/st" → visas som "(10 kr/st)"
+                                    </p>
+                                </div>
                             </div>
                         </div>
 
@@ -382,6 +471,107 @@
                                         >
                                     </div>
                                 </template>
+                                
+                                <!-- Slider Validation Rules -->
+                                <template x-if="selectedField?.type === 'slider'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Minimivärde</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.min"
+                                            placeholder="ex: 0"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                <template x-if="selectedField?.type === 'slider'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Maximivärde</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.max"
+                                            placeholder="ex: 100"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                <template x-if="selectedField?.type === 'slider'">
+                                    <div>
+                                        <label class="text-xs text-gray-600">Steg</label>
+                                        <input 
+                                            type="number" 
+                                            x-model="selectedField.validationRules.step"
+                                            placeholder="ex: 1"
+                                            class="w-full px-2 py-1 border rounded text-sm"
+                                        >
+                                    </div>
+                                </template>
+                                
+                                <!-- Slider Points Configuration -->
+                                <template x-if="selectedField?.type === 'slider'">
+                                    <div class="border-t pt-3 mt-3">
+                                        <label class="text-xs text-gray-700 font-semibold mb-2 block">🎚️ Skjutreglage-punkter</label>
+                                        <p class="text-xs text-gray-500 mb-2">Definiera specifika värden med priser:</p>
+                                        
+                                        <!-- Points List -->
+                                        <div class="space-y-2 mb-2">
+                                            <template x-if="selectedField.options && selectedField.options.length > 0">
+                                                <div class="space-y-2">
+                                                    <template x-for="(point, idx) in selectedField.options" :key="idx">
+                                                        <div class="flex gap-2 items-center p-2 bg-gray-50 rounded border">
+                                                            <input 
+                                                                type="number"
+                                                                x-model="point.value"
+                                                                placeholder="Värde (ex: 10)"
+                                                                class="flex-1 px-2 py-1 border rounded text-xs"
+                                                            >
+                                                            <input 
+                                                                type="text"
+                                                                x-model="point.label"
+                                                                placeholder="Etikett (ex: 10 rum)"
+                                                                class="flex-1 px-2 py-1 border rounded text-xs"
+                                                            >
+                                                            <input 
+                                                                type="number"
+                                                                x-model="point.price"
+                                                                placeholder="Pris"
+                                                                class="w-20 px-2 py-1 border rounded text-xs"
+                                                            >
+                                                            <button 
+                                                                @click="selectedField.options.splice(idx, 1)" 
+                                                                type="button"
+                                                                class="text-red-500 hover:text-red-700 px-2"
+                                                            >
+                                                                ✕
+                                                            </button>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </template>
+                                            <template x-if="!selectedField.options || selectedField.options.length === 0">
+                                                <p class="text-xs text-gray-400 italic text-center py-2">Inga punkter definierade ännu</p>
+                                            </template>
+                                        </div>
+                                        
+                                        <button 
+                                            @click="if (!selectedField.options) selectedField.options = []; selectedField.options.push({value: '', label: '', price: 0})"
+                                            type="button"
+                                            class="text-xs text-blue-600 hover:underline"
+                                        >
+                                            + Lägg till punkt
+                                        </button>
+                                        
+                                        <div class="mt-3 p-2 bg-blue-50 border border-blue-200 rounded text-xs">
+                                            <p class="font-semibold text-blue-800 mb-1">💡 Tips:</p>
+                                            <ul class="list-disc list-inside text-blue-700 space-y-1">
+                                                <li>Värde: Det numeriska värdet (10, 11, 12, osv.)</li>
+                                                <li>Etikett: Vad som visas till användaren</li>
+                                                <li>Pris: Tilläggspris för detta värde</li>
+                                                <li>Standardvärde sätts till 0 om inga punkter definieras</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
 
@@ -390,10 +580,21 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">🔀 Villkorsstyrd logik</label>
                             <p class="text-xs text-gray-500 mb-2">Visa detta fält endast om:</p>
                             
+                            <!-- Debug Info -->
+                            <div class="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs mb-2">
+                                <strong>🐛 Debug:</strong>
+                                <div x-text="`Totalt ${fields.length} fält i formuläret`"></div>
+                                <div x-show="selectedField" x-text="`Valt fält: ${selectedField?.label} (${selectedField?.name})`"></div>
+                                <button type="button" @click="console.log('Current fields:', fields); console.log('Selected field:', selectedField)" class="text-blue-600 underline">
+                                    Se i konsolen
+                                </button>
+                            </div>
+                            
                             <div class="space-y-2">
                                 <select 
                                     x-model="selectedField.conditionalLogic.operator"
                                     class="w-full px-2 py-1 border rounded text-sm"
+                                    @change="console.log('Operator changed to:', selectedField.conditionalLogic.operator); console.log('Full conditional logic:', selectedField.conditionalLogic)"
                                 >
                                     <option value="and">Alla villkor måste uppfyllas (OCH)</option>
                                     <option value="or">Ett villkor måste uppfyllas (ELLER)</option>
@@ -402,35 +603,97 @@
                                 <template x-if="selectedField?.conditionalLogic?.rules">
                                     <div class="space-y-2">
                                         <template x-for="(rule, ruleIdx) in selectedField.conditionalLogic.rules" :key="ruleIdx">
-                                            <div class="border p-2 rounded text-sm space-y-1">
-                                                <select x-model="rule.field" class="w-full px-2 py-1 border rounded text-xs">
-                                                    <option value="">Välj fält...</option>
-                                                    <template x-for="field in fields" :key="field.id">
-                                                        <option x-bind:value="field.name" x-text="field.label"></option>
-                                                    </template>
-                                                </select>
-                                                
-                                                <select x-model="rule.condition" class="w-full px-2 py-1 border rounded text-xs">
-                                                    <option value="equals">Är lika med</option>
-                                                    <option value="not_equals">Är inte lika med</option>
-                                                    <option value="contains">Innehåller</option>
-                                                    <option value="not_contains">Innehåller inte</option>
-                                                    <option value="greater_than">Större än</option>
-                                                    <option value="less_than">Mindre än</option>
-                                                    <option value="is_empty">Är tom</option>
-                                                    <option value="is_not_empty">Är inte tom</option>
-                                                </select>
-                                                
-                                                <div class="flex gap-2">
-                                                    <input 
-                                                        type="text" 
-                                                        x-model="rule.value"
-                                                        placeholder="Värde"
-                                                        class="flex-1 px-2 py-1 border rounded text-xs"
+                                            <div class="border p-2 rounded text-sm space-y-1 bg-gray-50">
+                                                <div>
+                                                    <label class="text-xs text-gray-600 font-medium">Fält att kontrollera:</label>
+                                                    <select 
+                                                        x-model="rule.field" 
+                                                        class="w-full px-2 py-1 border rounded text-xs mt-1"
+                                                        :class="rule.field ? 'bg-green-50 border-green-300' : 'bg-white'"
+                                                        @change="console.log('✅ Field selected:', rule.field, 'Full rule:', rule)"
+                                                        @click="console.log('📋 Fields available:', fields.length, fields.map(f => ({id: f.id, name: f.name, label: f.label})))"
                                                     >
-                                                    <button @click="removeConditionalRule(selectedField, ruleIdx)" class="text-red-500 hover:text-red-700 text-xs">
-                                                        ✕
-                                                    </button>
+                                                        <option value="">Välj fält...</option>
+                                                        <template x-for="otherField in fields.filter(f => f.id !== selectedField.id)" :key="otherField.id">
+                                                            <option 
+                                                                :value="otherField.name" 
+                                                                x-text="`${otherField.label} (${otherField.name})`"
+                                                            ></option>
+                                                        </template>
+                                                    </select>
+                                                    <!-- Status indicators -->
+                                                    <div class="mt-1 space-y-1">
+                                                        <p class="text-xs text-red-500" x-show="fields.length === 0">⚠️ Inga fält tillgängliga. Lägg till fält först!</p>
+                                                        <p class="text-xs text-gray-500" x-show="fields.length > 0 && !rule.field" x-text="`${fields.length} fält tillgängliga`"></p>
+                                                        <p class="text-xs text-green-600 font-medium" x-show="rule.field">
+                                                            ✅ Valt fält: <span x-text="rule.field"></span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="text-xs text-gray-600 font-medium">Villkor:</label>
+                                                    <select x-model="rule.condition" class="w-full px-2 py-1 border rounded text-xs mt-1">
+                                                        <option value="equals">Är lika med</option>
+                                                        <option value="not_equals">Är inte lika med</option>
+                                                        <option value="contains">Innehåller</option>
+                                                        <option value="not_contains">Innehåller inte</option>
+                                                        <option value="greater_than">Större än</option>
+                                                        <option value="less_than">Mindre än</option>
+                                                        <option value="is_empty">Är tom</option>
+                                                        <option value="is_not_empty">Är inte tom</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div>
+                                                    <label class="text-xs text-gray-600 font-medium">Värde:</label>
+                                                    <div class="flex gap-2 mt-1">
+                                                        <input 
+                                                            type="text" 
+                                                            x-model="rule.value"
+                                                            placeholder="t.ex. option_1"
+                                                            class="flex-1 px-2 py-1 border rounded text-xs"
+                                                            @input="console.log('✍️ Rule value changed:', {field: rule.field, condition: rule.condition, value: rule.value})"
+                                                        >
+                                                        <button @click="removeConditionalRule(selectedField, ruleIdx)" type="button" class="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600 text-xs">
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <!-- Show available options for select/radio/checkbox fields -->
+                                                    <template x-if="rule.field">
+                                                        <div>
+                                                            <template x-for="targetField in fields.filter(f => f.name === rule.field)" :key="targetField.id">
+                                                                <div>
+                                                                    <template x-if="targetField.options && targetField.options.length > 0 && ['select', 'radio', 'checkbox'].includes(targetField.type)">
+                                                                        <div class="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+                                                                            <p class="text-xs font-semibold text-blue-800 mb-1">📋 Tillgängliga värden för "<span x-text="targetField.label"></span>":</p>
+                                                                            <div class="space-y-1">
+                                                                                <template x-for="opt in targetField.options" :key="opt.value">
+                                                                                    <div class="flex items-center justify-between bg-white px-2 py-1 rounded border border-blue-100">
+                                                                                        <div class="flex items-center gap-2">
+                                                                                            <code class="text-xs font-mono bg-blue-100 text-blue-800 px-1 py-0.5 rounded" x-text="opt.value"></code>
+                                                                                            <span class="text-xs text-gray-600">→</span>
+                                                                                            <span class="text-xs text-gray-700" x-text="opt.label"></span>
+                                                                                        </div>
+                                                                                        <button 
+                                                                                            type="button"
+                                                                                            @click="rule.value = opt.value; console.log('✅ Quick-selected value:', opt.value)"
+                                                                                            class="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                                                                                        >
+                                                                                            Använd
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </template>
+                                                                            </div>
+                                                                        </div>
+                                                                    </template>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                    
+                                                    <p class="text-xs text-gray-500 mt-1">💡 För radio/select: använd <strong>värdet</strong> (t.ex. "option_1") inte etiketten</p>
                                                 </div>
                                             </div>
                                         </template>
@@ -457,7 +720,7 @@
                 <a href="{{ route('admin.forms.index') }}" class="btn btn-secondary">
                     Avbryt
                 </a>
-                <button @click="saveForm()" class="btn btn-primary">
+                <button @click="console.log('💾 SAVING FORM - All fields:', JSON.parse(JSON.stringify(fields))); saveForm()" class="btn btn-primary">
                     💾 Spara formulär
                 </button>
             </div>
@@ -472,36 +735,6 @@
     console.log('📝 Form ID:', {{ $form->id }});
     console.log('📋 Fields from database:', {{ $form->fields->count() }});
     
-    window.formSchema = {!! json_encode($form->fields->map(function($field) {
-        return [
-            'id' => (string)$field->id,
-            'type' => $field->field_type,
-            'label' => $field->field_label,
-            'name' => $field->field_name,
-            'placeholder' => $field->placeholder_text ?? '',
-            'helpText' => $field->help_text ?? '',
-            'width' => $field->field_width,
-            'required' => (bool)$field->required,
-            'options' => $field->field_options ?? [],
-            'pricingRules' => $field->pricing_rules ?? ['pricePerUnit' => 0],
-            'validationRules' => $field->validation_rules ?? [
-                'minLength' => null,
-                'maxLength' => null,
-                'min' => null,
-                'max' => null,
-                'pattern' => null
-            ],
-            'conditionalLogic' => $field->conditional_logic ?? [
-                'operator' => 'and',
-                'rules' => []
-            ],
-        ];
-    })) !!};
-    
-    // Debug: Log the schema
-    console.log('✅ window.formSchema loaded:', window.formSchema);
-    console.log('📊 Number of fields in schema:', window.formSchema ? window.formSchema.length : 0);
-    
     // Verify Alpine loads the data
     document.addEventListener('alpine:init', () => {
         console.log('🏔️ Alpine.js initialized');
@@ -513,6 +746,7 @@
         if (formBuilder && formBuilder.__x) {
             console.log('🎯 Alpine component data:', formBuilder.__x.$data);
             console.log('📝 Fields in Alpine:', formBuilder.__x.$data.fields);
+            console.log('📝 Field names:', formBuilder.__x.$data.fields.map(f => ({name: f.name, label: f.label})));
         } else {
             console.error('❌ Alpine component not found or not initialized');
         }

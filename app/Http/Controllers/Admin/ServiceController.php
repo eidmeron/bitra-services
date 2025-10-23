@@ -54,6 +54,29 @@ class ServiceController extends Controller
 
         $data['slug'] = Str::slug($data['name']);
 
+        // Handle checkboxes - when unchecked, they don't send data
+        $data['one_time_booking'] = $request->has('one_time_booking') ? 1 : 0;
+        $data['subscription_booking'] = $request->has('subscription_booking') ? 1 : 0;
+        $data['rot_eligible'] = $request->has('rot_eligible') ? 1 : 0;
+        
+        // Handle subscription types - empty array if none selected
+        $data['subscription_types'] = $request->has('subscription_types') ? $request->input('subscription_types') : [];
+        
+        // Handle content arrays - filter out empty values
+        $data['includes'] = $request->has('includes') ? array_values(array_filter($request->input('includes', []))) : [];
+        $data['features'] = $request->has('features') ? array_values(array_filter($request->input('features', []), function($item) {
+            return !empty($item['title']);
+        })) : [];
+        $data['faq'] = $request->has('faq') ? array_values(array_filter($request->input('faq', []), function($item) {
+            return !empty($item['question']);
+        })) : [];
+        
+        // Set default multipliers if not provided
+        $data['daily_multiplier'] = $request->input('daily_multiplier', 1.05);
+        $data['weekly_multiplier'] = $request->input('weekly_multiplier', 1.00);
+        $data['biweekly_multiplier'] = $request->input('biweekly_multiplier', 0.95);
+        $data['monthly_multiplier'] = $request->input('monthly_multiplier', 0.90);
+
         $service = Service::create($data);
 
         // Attach cities
@@ -84,11 +107,37 @@ class ServiceController extends Controller
 
         $data['slug'] = Str::slug($data['name']);
 
+        // Handle checkboxes - when unchecked, they don't send data
+        $data['one_time_booking'] = $request->has('one_time_booking') ? 1 : 0;
+        $data['subscription_booking'] = $request->has('subscription_booking') ? 1 : 0;
+        $data['rot_eligible'] = $request->has('rot_eligible') ? 1 : 0;
+        
+        // Handle subscription types - empty array if none selected
+        $data['subscription_types'] = $request->has('subscription_types') ? $request->input('subscription_types') : [];
+        
+        // Handle content arrays - filter out empty values
+        $data['includes'] = $request->has('includes') ? array_values(array_filter($request->input('includes', []))) : [];
+        $data['features'] = $request->has('features') ? array_values(array_filter($request->input('features', []), function($item) {
+            return !empty($item['title']);
+        })) : [];
+        $data['faq'] = $request->has('faq') ? array_values(array_filter($request->input('faq', []), function($item) {
+            return !empty($item['question']);
+        })) : [];
+        
+        // Set default multipliers if not provided
+        $data['daily_multiplier'] = $request->input('daily_multiplier', 1.05);
+        $data['weekly_multiplier'] = $request->input('weekly_multiplier', 1.00);
+        $data['biweekly_multiplier'] = $request->input('biweekly_multiplier', 0.95);
+        $data['monthly_multiplier'] = $request->input('monthly_multiplier', 0.90);
+
         $service->update($data);
 
         // Sync cities
         if ($request->has('cities')) {
             $service->cities()->sync($request->cities);
+        } else {
+            // If no cities selected, clear all
+            $service->cities()->sync([]);
         }
 
         return redirect()->route('admin.services.index')

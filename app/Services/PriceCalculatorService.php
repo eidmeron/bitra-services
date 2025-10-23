@@ -12,52 +12,112 @@ class PriceCalculatorService
 {
     /**
      * Calculate total price based on formula:
-     * Total = ((Base + Variables) × City_Multiplier) - ((Base + Variables) × ROT%) - Discount
+     * Total = ((Base + Variables) × Subscription_Multiplier × City_Multiplier) - ROT - Discount
      */
     public function calculate(array $data): array
     {
         $service = Service::findOrFail($data['service_id']);
         $city = City::findOrFail($data['city_id']);
+        $formId = isset($data['form_id']) ? (int) $data['form_id'] : null;
 
         $basePrice = $service->base_price;
-        $variableAdditions = $this->calculateVariableAdditions($data['form_data'] ?? []);
+        $variableAdditions = $this->calculateVariableAdditions($data['form_data'] ?? [], $formId);
+        
+        // Get subscription multiplier (if applicable)
+        $subscriptionMultiplier = $this->getSubscriptionMultiplier($service, $data);
+        
         $cityMultiplier = $city->city_multiplier;
 
-        // Subtotal before deductions
-        $subtotal = ($basePrice + $variableAdditions) * $cityMultiplier;
+        // Calculate subtotal: (Base + Variables) × Subscription × City
+        $beforeMultipliers = $basePrice + $variableAdditions;
+        $afterSubscription = $beforeMultipliers * $subscriptionMultiplier;
+        $subtotal = $afterSubscription * $cityMultiplier;
 
-        // ROT deduction (if eligible)
+        // ROT deduction (applied to base + variables, before multipliers)
         $rotDeduction = 0;
         if ($service->rot_eligible && ($data['apply_rot'] ?? false)) {
-            $rotDeduction = ($basePrice + $variableAdditions) * ($service->rot_percent / 100);
+            $rotDeduction = $beforeMultipliers * ($service->rot_percent / 100);
         }
 
-        // Discount
+        // Discount (applied to base + variables, before multipliers)
         $discountAmount = 0;
         if ($service->discount_percent > 0) {
-            $discountAmount = ($basePrice + $variableAdditions) * ($service->discount_percent / 100);
+            $discountAmount = $beforeMultipliers * ($service->discount_percent / 100);
         }
 
-        $finalPrice = $subtotal - $rotDeduction - $discountAmount;
+        // Loyalty Points Discount
+        $loyaltyPointsDiscount = 0;
+        $loyaltyPointsUsed = 0;
+        if (!empty($data['loyalty_points_to_use']) && !empty($data['user_id'])) {
+            $loyaltyPointsUsed = $this->applyLoyaltyPoints(
+                (int) $data['user_id'],
+                (float) $data['loyalty_points_to_use'],
+                $subtotal - $rotDeduction - $discountAmount
+            );
+            $pointValue = (float) \App\Models\SiteSetting::get('loyalty_points_value', 1);
+            $loyaltyPointsDiscount = $loyaltyPointsUsed * $pointValue;
+        }
+
+        // Swedish VAT calculation: total + (total × moms%) = Totalt (inkl. moms)
+        // VAT is calculated on the subtotal before deductions
+        $taxRate = (float) ($service->tax_rate ?? 25.00);
+        $taxAmount = max(0, $subtotal * ($taxRate / 100));
+        
+        // Apply deductions after VAT calculation
+        $finalBeforeDeductions = $subtotal + $taxAmount;
+        $finalPrice = $finalBeforeDeductions - $rotDeduction - $discountAmount - $loyaltyPointsDiscount;
 
         return [
             'base_price' => (float) $basePrice,
             'variable_additions' => $variableAdditions,
+            'subscription_multiplier' => (float) $subscriptionMultiplier,
+            'subscription_type' => $data['subscription_frequency'] ?? null,
             'city_multiplier' => (float) $cityMultiplier,
             'subtotal' => $subtotal,
+            'tax_rate' => $taxRate,
+            'tax_amount' => $taxAmount,
             'rot_deduction' => $rotDeduction,
             'discount_amount' => $discountAmount,
+            'loyalty_points_used' => $loyaltyPointsUsed,
+            'loyalty_points_discount' => $loyaltyPointsDiscount,
             'final_price' => max(0, $finalPrice), // Never negative
-            'breakdown' => $this->getBreakdown($data['form_data'] ?? []),
+            'breakdown' => $this->getBreakdown($data['form_data'] ?? [], $formId),
         ];
     }
 
-    private function calculateVariableAdditions(array $formData): float
+    private function getSubscriptionMultiplier(Service $service, array $data): float
+    {
+        // Check if it's a subscription booking
+        if (($data['booking_type'] ?? 'one_time') !== 'subscription') {
+            return 1.00; // No subscription multiplier for one-time bookings
+        }
+
+        // Get the subscription frequency
+        $frequency = $data['subscription_frequency'] ?? 'weekly';
+
+        // Return the appropriate multiplier
+        return match($frequency) {
+            'daily' => (float) $service->daily_multiplier,
+            'weekly' => (float) $service->weekly_multiplier,
+            'biweekly' => (float) $service->biweekly_multiplier,
+            'monthly' => (float) $service->monthly_multiplier,
+            default => 1.00,
+        };
+    }
+
+    private function calculateVariableAdditions(array $formData, ?int $formId = null): float
     {
         $total = 0;
 
         foreach ($formData as $fieldName => $value) {
-            $field = FormField::where('field_name', $fieldName)->first();
+            // Look up field by form_id and field_name for accuracy
+            $query = FormField::where('field_name', $fieldName);
+            
+            if ($formId) {
+                $query->where('form_id', $formId);
+            }
+            
+            $field = $query->first();
 
             if (!$field || !$field->pricing_rules) {
                 continue;
@@ -67,30 +127,28 @@ class PriceCalculatorService
 
             switch ($field->field_type) {
                 case 'number':
-                    // Example: price per unit
-                    $total += (float) $value * ($pricingRules['price_per_unit'] ?? 0);
+                case 'slider':
+                    // Price per unit
+                    $pricePerUnit = $pricingRules['pricePerUnit'] ?? $pricingRules['price_per_unit'] ?? 0;
+                    $total += (float) $value * (float) $pricePerUnit;
                     break;
 
                 case 'select':
                 case 'radio':
-                    // Example: {options: [{value: 'small', price: 100}, ...]}
-                    $option = collect($pricingRules['options'] ?? [])
-                        ->firstWhere('value', $value);
-                    $total += $option['price'] ?? 0;
+                    // Find option price
+                    $options = $field->field_options ?? $pricingRules['options'] ?? [];
+                    $option = collect($options)->firstWhere('value', $value);
+                    $total += (float) ($option['price'] ?? 0);
                     break;
 
                 case 'checkbox':
                     // Multiple selections
                     $values = is_array($value) ? $value : [$value];
+                    $options = $field->field_options ?? $pricingRules['options'] ?? [];
                     foreach ($values as $val) {
-                        $option = collect($pricingRules['options'] ?? [])
-                            ->firstWhere('value', $val);
-                        $total += $option['price'] ?? 0;
+                        $option = collect($options)->firstWhere('value', $val);
+                        $total += (float) ($option['price'] ?? 0);
                     }
-                    break;
-
-                case 'slider':
-                    $total += (float) $value * ($pricingRules['price_per_unit'] ?? 0);
                     break;
             }
         }
@@ -98,12 +156,19 @@ class PriceCalculatorService
         return $total;
     }
 
-    private function getBreakdown(array $formData): array
+    private function getBreakdown(array $formData, ?int $formId = null): array
     {
         $breakdown = [];
 
         foreach ($formData as $fieldName => $value) {
-            $field = FormField::where('field_name', $fieldName)->first();
+            // Look up field by form_id and field_name for accuracy
+            $query = FormField::where('field_name', $fieldName);
+            
+            if ($formId) {
+                $query->where('form_id', $formId);
+            }
+            
+            $field = $query->first();
 
             if (!$field || !$field->pricing_rules) {
                 continue;
@@ -126,30 +191,61 @@ class PriceCalculatorService
     {
         switch ($field->field_type) {
             case 'number':
-                return (float) $value * ($pricingRules['price_per_unit'] ?? 0);
+            case 'slider':
+                $pricePerUnit = $pricingRules['pricePerUnit'] ?? $pricingRules['price_per_unit'] ?? 0;
+                return (float) $value * (float) $pricePerUnit;
 
             case 'select':
             case 'radio':
-                $option = collect($pricingRules['options'] ?? [])
-                    ->firstWhere('value', $value);
-                return $option['price'] ?? 0;
+                $options = $field->field_options ?? $pricingRules['options'] ?? [];
+                $option = collect($options)->firstWhere('value', $value);
+                return (float) ($option['price'] ?? 0);
 
             case 'checkbox':
                 $total = 0;
                 $values = is_array($value) ? $value : [$value];
+                $options = $field->field_options ?? $pricingRules['options'] ?? [];
                 foreach ($values as $val) {
-                    $option = collect($pricingRules['options'] ?? [])
-                        ->firstWhere('value', $val);
-                    $total += $option['price'] ?? 0;
+                    $option = collect($options)->firstWhere('value', $val);
+                    $total += (float) ($option['price'] ?? 0);
                 }
                 return $total;
-
-            case 'slider':
-                return (float) $value * ($pricingRules['price_per_unit'] ?? 0);
 
             default:
                 return 0;
         }
+    }
+
+    /**
+     * Apply loyalty points and return the actual number of points to use
+     */
+    private function applyLoyaltyPoints(int $userId, float $pointsToUse, float $maxAmount): float
+    {
+        // Check if loyalty points are enabled
+        if (!\App\Models\SiteSetting::get('loyalty_points_enabled', true)) {
+            return 0;
+        }
+
+        // Get user's available points
+        $user = \App\Models\User::find($userId);
+        if (!$user) {
+            return 0;
+        }
+
+        $availablePoints = $user->loyalty_points_balance;
+        
+        // Can't use more points than available
+        $pointsToUse = min($pointsToUse, $availablePoints);
+
+        // Get point value
+        $pointValue = (float) \App\Models\SiteSetting::get('loyalty_points_value', 1);
+        $maxDiscountFromPoints = $maxAmount; // Can't discount more than the remaining price
+
+        // Calculate maximum points that can be used based on remaining price
+        $maxPointsUsable = $maxDiscountFromPoints / $pointValue;
+
+        // Use the minimum of requested points and maximum usable points
+        return min($pointsToUse, $maxPointsUsable);
     }
 }
 

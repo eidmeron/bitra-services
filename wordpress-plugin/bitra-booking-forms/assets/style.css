@@ -1,0 +1,121 @@
+/**
+ * Bitra Booking Forms - Frontend Styles
+ * Version: 1.0.0
+ */
+
+/* Container */
+.bitra-booking-form-container {
+    width: 100%;
+    max-width: 100%;
+    margin: 2rem auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* iframe */
+.bitra-booking-iframe {
+    width: 100%;
+    min-height: 800px;
+    border: none;
+    border-radius: 12px;
+    background: #f9fafb;
+}
+
+/* AJAX Container */
+.bitra-booking-form-ajax {
+    width: 100%;
+    max-width: 100%;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading state */
+.bitra-loading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.125rem;
+    color: #6b7280;
+    animation: bitra-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes bitra-pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* Error state */
+.bitra-error {
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem auto;
+    max-width: 600px;
+    text-align: center;
+    color: #991b1b;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bitra-booking-form-container,
+    .bitra-booking-form-ajax {
+        margin: 1rem 0;
+        border-radius: 8px;
+    }
+    
+    .bitra-booking-form-ajax {
+        padding: 1rem;
+    }
+    
+    .bitra-booking-iframe {
+        min-height: 600px;
+    }
+}
+
+/* Admin Styles */
+.wrap .card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.wrap .card h3 {
+    margin-top: 0;
+    color: #1d4ed8;
+}
+
+.wrap .card code {
+    background: #f3f4f6;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    display: inline-block;
+    margin: 0.5rem 0;
+    font-size: 14px;
+}
+
+.wrap .notice-info {
+    background: #dbeafe;
+    border-left-color: #3b82f6;
+}
+
+.wrap .notice-info p {
+    margin: 0.5rem 0;
+}
+
+.wrap .notice-info ol {
+    margin-left: 1.5rem;
+    margin-top: 0.5rem;
+}
+

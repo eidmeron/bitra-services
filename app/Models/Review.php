@@ -26,6 +26,23 @@ class Review extends Model
         'rating' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        static::created(function (Review $review) {
+            $review->company->updateReviewStats();
+        });
+
+        static::updated(function (Review $review) {
+            if ($review->wasChanged('status')) {
+                $review->company->updateReviewStats();
+            }
+        });
+
+        static::deleted(function (Review $review) {
+            $review->company->updateReviewStats();
+        });
+    }
+
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class);

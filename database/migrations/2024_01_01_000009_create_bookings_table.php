@@ -17,6 +17,9 @@ return new class extends Migration
             
             // Relations
             $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->enum('customer_type', ['private', 'company'])->nullable();
+            $table->string('org_number', 20)->nullable();
+            $table->string('personnummer', 20)->nullable();
             $table->foreignId('company_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('service_id')->constrained()->onDelete('cascade');
             $table->foreignId('form_id')->constrained()->onDelete('cascade');
@@ -39,9 +42,14 @@ return new class extends Migration
             $table->decimal('base_price', 10, 2);
             $table->decimal('variable_additions', 10, 2)->default(0);
             $table->decimal('city_multiplier', 5, 2);
+            $table->decimal('subscription_multiplier', 5, 2)->default(1.00);
+            $table->decimal('subtotal', 10, 2)->nullable();
+            $table->decimal('tax_rate', 5, 2)->nullable();
+            $table->decimal('tax_amount', 10, 2)->nullable();
             $table->decimal('rot_deduction', 10, 2)->default(0);
             $table->decimal('discount_amount', 10, 2)->default(0);
             $table->decimal('final_price', 10, 2);
+            $table->decimal('total_with_tax', 10, 2)->nullable();
             
             // Status workflow
             $table->enum('status', [

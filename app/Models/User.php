@@ -22,6 +22,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'type',
+        'name',
         'email',
         'phone',
         'password',
@@ -65,6 +66,16 @@ class User extends Authenticatable
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function loyaltyPoints(): HasMany
+    {
+        return $this->hasMany(LoyaltyPoint::class);
+    }
+
+    public function complaints(): HasMany
+    {
+        return $this->hasMany(Complaint::class);
     }
 
     public function isAdmin(): bool

@@ -1,11 +1,11 @@
-@extends('layouts.admin')
+@extends('layouts.user')
 
 @section('title', 'Mina bokningar')
 
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h2 class="text-2xl font-bold">Mina bokningar</h2>
-    <a href="{{ route('home') }}" class="btn btn-primary">
+    <a href="{{ route('welcome') }}" class="btn btn-primary">
         + Ny bokning
     </a>
 </div>
@@ -33,6 +33,7 @@
                     <th>Bokningsnr</th>
                     <th>Tjänst</th>
                     <th>Stad</th>
+                    <th>Kundtyp</th>
                     <th>Företag</th>
                     <th>Pris</th>
                     <th>Status</th>
@@ -50,6 +51,17 @@
                         </td>
                         <td>{{ $booking->city->name }}</td>
                         <td>
+                            @if($booking->customer_type === 'company')
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    🏢 Företag
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    🏠 Privat
+                                </span>
+                            @endif
+                        </td>
+                        <td>
                             @if($booking->company)
                                 <div>{{ $booking->company->user->email }}</div>
                                 @if($booking->company->review_average > 0)
@@ -62,7 +74,10 @@
                             @endif
                         </td>
                         <td>
-                            <div class="font-semibold">{{ number_format($booking->final_price, 2, ',', ' ') }} kr</div>
+                            <div class="font-semibold">{{ number_format($booking->total_with_tax ?? $booking->final_price, 2, ',', ' ') }} kr</div>
+                            @if($booking->tax_amount > 0)
+                                <div class="text-xs text-gray-500">inkl. moms</div>
+                            @endif
                             @if($booking->rot_deduction > 0)
                                 <div class="text-xs text-green-600">ROT: -{{ number_format($booking->rot_deduction, 0) }} kr</div>
                             @endif
@@ -84,9 +99,9 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="text-center py-12">
+                        <td colspan="9" class="text-center py-12">
                             <p class="text-gray-500 mb-4">Du har inga bokningar ännu</p>
-                            <a href="{{ route('home') }}" class="btn btn-primary">
+                            <a href="{{ route('welcome') }}" class="btn btn-primary">
                                 Boka din första tjänst
                             </a>
                         </td>

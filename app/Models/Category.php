@@ -7,6 +7,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Builder;
 
 class Category extends Model
 {
@@ -34,5 +35,13 @@ class Category extends Model
     public function activeServices(): HasMany
     {
         return $this->services()->where('status', 'active');
+    }
+
+    /**
+     * Scope: Only active categories
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', 'active');
     }
 }

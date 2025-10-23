@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->enum('type', ['admin', 'company', 'user'])->default('user');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
+            $table->decimal('loyalty_points_balance', 10, 2)->default(0);
             $table->string('phone')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

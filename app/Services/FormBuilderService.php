@@ -66,7 +66,7 @@ class FormBuilderService
                 'form_slug' => $slug,
                 'form_schema' => $data['form_schema'] ?? $form->form_schema,
                 'success_message' => $data['success_message'] ?? $form->success_message,
-                'redirect_after_submit' => $data['redirect_after_submit'] ?? $form->redirect_after_submit,
+                'redirect_after_submit' => isset($data['redirect_after_submit']) ? (bool)$data['redirect_after_submit'] : $form->redirect_after_submit,
                 'redirect_url' => $data['redirect_url'] ?? $form->redirect_url,
                 'custom_styles' => $data['custom_styles'] ?? $form->custom_styles,
                 'status' => $data['status'] ?? $form->status,

@@ -23,7 +23,14 @@ class BookingController extends Controller
     {
         $user = auth()->user();
 
-        $bookings = Booking::where('user_id', $user->id)
+        // Include both registered user bookings and guest bookings by email
+        $bookings = Booking::where(function ($query) use ($user) {
+                $query->where('user_id', $user->id)
+                    ->orWhere(function ($q) use ($user) {
+                        $q->whereNull('user_id')
+                          ->where('customer_email', $user->email);
+                    });
+            })
             ->with(['service', 'city', 'company'])
             ->when($request->status, function ($query, $status) {
                 $query->where('status', $status);
@@ -38,8 +45,9 @@ class BookingController extends Controller
     {
         $user = auth()->user();
 
-        // Ensure booking belongs to this user
-        if ($booking->user_id !== $user->id) {
+        // Ensure booking belongs to this user (either by user_id or email)
+        if ($booking->user_id !== $user->id && 
+            !($booking->user_id === null && $booking->customer_email === $user->email)) {
             abort(403);
         }
 
@@ -75,7 +83,7 @@ class BookingController extends Controller
             'review_text' => 'nullable|string|max:1000',
         ]);
 
-        Review::create([
+        $review = Review::create([
             'booking_id' => $booking->id,
             'company_id' => $booking->company_id,
             'user_id' => $user->id,
@@ -84,6 +92,12 @@ class BookingController extends Controller
             'review_text' => $validated['review_text'] ?? null,
             'status' => 'pending',
         ]);
+
+        // Send notification to user
+        $user->notify(new \App\Notifications\ReviewSubmittedNotification($review));
+
+        // Send notification to company
+        $booking->company->user->notify(new \App\Notifications\CompanyReviewReceivedNotification($review));
 
         return redirect()->route('user.bookings.show', $booking)
             ->with('success', 'Tack för din recension!');
