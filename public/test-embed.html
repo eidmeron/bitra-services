@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Bitra Form Embedding</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #1e40af;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+        }
+        .code-block {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Bitra Form Embedding Test</h1>
+        
+        <div class="test-section">
+            <h2>📋 Test 1: AJAX Embedding (Direct HTML)</h2>
+            <p>This form is loaded via AJAX and embedded directly into the page:</p>
+            <div class="code-block">
+&lt;div id="bitra-form-1"&gt;&lt;/div&gt;
+&lt;script src="https://bitra.se/wordpress-shortcode.js" data-form-token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" data-type="ajax"&gt;&lt;/script&gt;
+            </div>
+            
+            <!-- AJAX Form Embedding -->
+            <div id="bitra-form-1"></div>
+            <script src="https://bitra.se/wordpress-shortcode.js" data-form-token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" data-type="ajax"></script>
+        </div>
+        
+        <div class="test-section">
+            <h2>🖼️ Test 2: Iframe Embedding</h2>
+            <p>This form is loaded in an iframe:</p>
+            <div class="code-block">
+&lt;div id="bitra-form-2"&gt;&lt;/div&gt;
+&lt;script src="https://bitra.se/wordpress-shortcode.js" data-form-token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" data-type="iframe" data-height="800"&gt;&lt;/script&gt;
+            </div>
+            
+            <!-- Iframe Form Embedding -->
+            <div id="bitra-form-2"></div>
+            <script src="https://bitra.se/wordpress-shortcode.js" data-form-token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" data-type="iframe" data-height="800"></script>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔧 Test 3: Manual JavaScript Integration</h2>
+            <p>This form is loaded using the manual JavaScript API:</p>
+            <div class="code-block">
+&lt;div id="bitra-form-3"&gt;&lt;/div&gt;
+&lt;script&gt;
+    // Wait for the script to load
+    window.addEventListener('load', function() {
+        if (window.BitraForms) {
+            window.BitraForms.loadForm('bitra-form-3', 'AEgdP0ZeI7qaUUCGJk2Df4588joRy229', {
+                type: 'ajax'
+            });
+        }
+    });
+&lt;/script&gt;
+            </div>
+            
+            <!-- Manual JavaScript Integration -->
+            <div id="bitra-form-3"></div>
+            <script>
+                // Wait for the script to load
+                window.addEventListener('load', function() {
+                    if (window.BitraForms) {
+                        window.BitraForms.loadForm('bitra-form-3', 'AEgdP0ZeI7qaUUCGJk2Df4588joRy229', {
+                            type: 'ajax'
+                        });
+                    }
+                });
+            </script>
+        </div>
+        
+        <div class="test-section">
+            <h2>📖 Integration Instructions</h2>
+            <h3>For WordPress:</h3>
+            <div class="code-block">
+[bitra_form token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" type="ajax"]
+            </div>
+            
+            <h3>For any website (HTML):</h3>
+            <div class="code-block">
+&lt;div id="bitra-form"&gt;&lt;/div&gt;
+&lt;script src="https://bitra.se/wordpress-shortcode.js" data-form-token="AEgdP0ZeI7qaUUCGJk2Df4588joRy229" data-type="ajax"&gt;&lt;/script&gt;
+            </div>
+            
+            <h3>Available Options:</h3>
+            <ul>
+                <li><strong>data-form-token</strong>: Required. Your form token from Bitra dashboard</li>
+                <li><strong>data-type</strong>: "ajax" (embedded) or "iframe" (default)</li>
+                <li><strong>data-height</strong>: Height for iframe (default: "1200px")</li>
+                <li><strong>data-container</strong>: Custom container ID (default: "bitra-form-{token}")</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Debug information
+        console.log('Bitra Form Embedding Test Page Loaded');
+        console.log('Available forms:', window.BitraForms);
+    </script>
+</body>
+</html>
