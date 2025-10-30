@@ -7,7 +7,7 @@ use App\Http\Controllers\Company\BookingController;
 use App\Http\Controllers\Company\ChatController;
 use App\Http\Controllers\Company\DashboardController;
 use App\Http\Controllers\Company\MessageController;
-use App\Http\Controllers\Company\PayoutController;
+use App\Http\Controllers\Company\DepositController;
 use App\Http\Controllers\Company\ProfileController;
 use App\Http\Controllers\Company\SettingsController;
 use App\Http\Middleware\CompanyMiddleware;
@@ -31,6 +31,10 @@ Route::middleware(['auth', CompanyMiddleware::class])->prefix('company')->name('
         ->withoutMiddleware(['auth', CompanyMiddleware::class])
         ->name('register');
     
+    Route::post('/register/validate-step', [CompanyRegistrationController::class, 'validateStep'])
+        ->withoutMiddleware(['auth', CompanyMiddleware::class])
+        ->name('register.validate-step');
+    
     Route::post('/register', [CompanyRegistrationController::class, 'register'])
         ->withoutMiddleware(['auth', CompanyMiddleware::class])
         ->name('register.submit');
@@ -52,13 +56,11 @@ Route::middleware(['auth', CompanyMiddleware::class])->prefix('company')->name('
     Route::get('/messages/{message}', [MessageController::class, 'show'])->name('messages.show');
     Route::post('/messages/{message}/reply', [MessageController::class, 'reply'])->name('messages.reply');
     
-    // Payouts
-    Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts.index');
-    Route::get('/payouts/{payout}', [PayoutController::class, 'show'])->name('payouts.show');
-    Route::get('/payouts/weekly-reports', [PayoutController::class, 'weeklyReports'])->name('payouts.weekly-reports');
-    Route::get('/payouts/weekly-reports/{report}', [PayoutController::class, 'showWeeklyReport'])->name('payouts.weekly-report');
-    Route::get('/payouts/balance', [PayoutController::class, 'balance'])->name('payouts.balance');
-    Route::get('/payouts/tax-info', [PayoutController::class, 'taxInfo'])->name('payouts.tax-info');
+    // Deposits (replaces payouts)
+    Route::get('/deposits', [DepositController::class, 'index'])->name('deposits.index');
+    Route::get('/deposits/{deposit}', [DepositController::class, 'show'])->name('deposits.show');
+    Route::get('/deposits/weekly-reports', [DepositController::class, 'weeklyReports'])->name('deposits.weekly-reports');
+    Route::get('/deposits/weekly-reports/{report}', [DepositController::class, 'showWeeklyReport'])->name('deposits.weekly-report');
     
     // Notifications
     Route::post('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');

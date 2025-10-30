@@ -7,11 +7,8 @@ namespace Database\Seeders;
 use App\Models\PageContent;
 use Illuminate\Database\Seeder;
 
-class PageContentSeeder extends Seeder
+final class PageContentSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         $pages = [
@@ -19,155 +16,113 @@ class PageContentSeeder extends Seeder
                 'page_key' => 'homepage',
                 'page_name' => 'Startsida',
                 'page_type' => 'static',
-                'meta_title' => 'Bitra Services - Boka hemtjänster online | Snabbt, Enkelt & Tryggt',
-                'meta_description' => 'Boka hemtjänster snabbt och enkelt. Städning, trädgård, underhåll och mer från verifierade företag. Transparenta priser, snabb service och kvalitetsgaranti.',
-                'meta_keywords' => 'hemtjänster, boka online, städning, trädgård, underhåll, ROT-avdrag, Sverige',
-                'hero_title' => 'Boka Hemtjänster Online',
-                'hero_subtitle' => 'Snabbt, Enkelt och Tryggt med Verifierade Företag',
-                'hero_cta_text' => 'Börja Boka Nu',
-                'hero_cta_link' => '#services',
-                'features' => [
-                    [
-                        'icon' => '💰',
-                        'title' => 'Transparenta Priser',
-                        'description' => 'Inga dolda kostnader. Se exakt pris innan du bokar.',
-                    ],
-                    [
-                        'icon' => '⚡',
-                        'title' => 'Snabb Service',
-                        'description' => 'Boka online på 2 minuter. Få svar inom 24 timmar.',
-                    ],
-                    [
-                        'icon' => '✓',
-                        'title' => 'Kvalitetsgaranti',
-                        'description' => 'Alla företag är verifierade och försäkrade.',
-                    ],
-                    [
-                        'icon' => '🏆',
-                        'title' => 'ROT-avdrag',
-                        'description' => 'Få upp till 50% rabatt med ROT-avdrag.',
-                    ],
-                ],
+                'meta_title' => 'Hitta och boka professionella tjänster i hela Sverige',
+                'meta_description' => 'Boka professionella tjänster i hela Sverige - från hemstädning till renovering. Vi kopplar dig till Sveriges bästa företag.',
+                'meta_keywords' => 'tjänster, bokning, städning, renovering, hantverk, Sverige',
+                'og_title' => 'Bitra - Sveriges bästa tjänsteplattform',
+                'og_description' => 'Boka professionella tjänster i hela Sverige med garanterad kvalitet och transparenta priser.',
+                'canonical_url' => '/',
+                'hero_title' => 'Hitta och boka <span class="text-yellow-300">professionella tjänster</span> i hela Sverige',
+                'hero_subtitle' => 'Från hemstädning till renovering - Vi kopplar dig till Sveriges bästa företag',
                 'is_active' => true,
                 'order' => 1,
             ],
             [
                 'page_key' => 'about',
-                'page_name' => 'Om Oss',
+                'page_name' => 'Om oss',
                 'page_type' => 'static',
-                'meta_title' => 'Om Bitra Services - Sveriges Ledande Plattform för Hemtjänster',
-                'meta_description' => 'Lär känna Bitra Services. Vi kopplar ihop kunder med verifierade företag för städning, trädgård, underhåll och mer. Din pålitliga partner sedan 2020.',
-                'hero_title' => 'Om Bitra Services',
-                'hero_subtitle' => 'Din pålitliga partner för hemtjänster sedan 2020',
-                'sections' => [
-                    [
-                        'type' => 'text',
-                        'title' => 'Vår Historia',
-                        'content' => 'Bitra Services grundades 2020 med en enkel vision: att göra det enkelt och tryggt att boka hemtjänster online. Idag är vi Sveriges ledande plattform med över 500 verifierade företag och tusentals nöjda kunder.',
-                    ],
-                    [
-                        'type' => 'text',
-                        'title' => 'Vårt Uppdrag',
-                        'content' => 'Vi strävar efter att skapa den bästa upplevelsen för både kunder och företag. Genom att erbjuda transparenta priser, snabb service och kvalitetsgaranti bygger vi förtroende och långsiktiga relationer.',
-                    ],
-                ],
+                'meta_title' => 'Om oss - Bitra Services | Sveriges Ledande Plattform för Hemtjänster',
+                'meta_description' => 'Lär dig mer om Bitra - Sveriges ledande plattform för att hitta och boka professionella tjänster. Vår mission och vision.',
+                'meta_keywords' => 'om oss, bitra, tjänsteplattform, mission, vision, Sverige',
+                'og_title' => 'Om Bitra - Sveriges ledande tjänsteplattform',
+                'og_description' => 'Upptäck vår mission att göra tjänstebokning enkelt, säkert och transparent för alla.',
+                'canonical_url' => '/about',
+                'hero_title' => 'Om Bitra',
+                'hero_subtitle' => 'Din pålitliga plattform för verifierade och högkvalitativa tjänster i hela Sverige och internationellt.',
                 'is_active' => true,
                 'order' => 2,
             ],
             [
-                'page_key' => 'how-it-works',
-                'page_name' => 'Så Fungerar Det',
+                'page_key' => 'why-us',
+                'page_name' => 'Varför välja oss',
                 'page_type' => 'static',
-                'meta_title' => 'Så Fungerar Det - Boka Hemtjänster på 3 Enkla Steg',
-                'meta_description' => 'Lär dig hur du bokar hemtjänster på Bitra Services. Välj tjänst, fyll i detaljer och få offerter från verifierade företag. Enkelt, snabbt och tryggt.',
-                'hero_title' => 'Så Fungerar Det',
-                'hero_subtitle' => 'Boka hemtjänster på 3 enkla steg',
-                'sections' => [
-                    [
-                        'type' => 'steps',
-                        'title' => 'Enkel Bokningsprocess',
-                        'steps' => [
-                            [
-                                'number' => 1,
-                                'title' => 'Välj Tjänst',
-                                'description' => 'Välj den tjänst du behöver från vårt breda utbud av hemtjänster.',
-                            ],
-                            [
-                                'number' => 2,
-                                'title' => 'Fyll i Detaljer',
-                                'description' => 'Beskriv dina behov och när du vill ha tjänsten utförd.',
-                            ],
-                            [
-                                'number' => 3,
-                                'title' => 'Få Offerter',
-                                'description' => 'Få offerter från verifierade företag inom 24 timmar.',
-                            ],
-                        ],
-                    ],
-                ],
+                'meta_title' => 'Varför välja Bitra - Din pålitliga plattform för hemtjänster',
+                'meta_description' => 'Upptäck varför Bitra är Sveriges bästa tjänsteplattform. Verifierade företag, transparenta priser och kvalitetsgaranti.',
+                'meta_keywords' => 'varför bitra, tjänsteplattform, verifierade företag, kvalitetsgaranti, Sverige',
+                'og_title' => 'Varför välja Bitra - Sveriges bästa tjänsteplattform',
+                'og_description' => 'Upptäck fördelarna med att välja Bitra för dina tjänstebehov.',
+                'canonical_url' => '/why-us',
+                'hero_title' => 'Varför välja <span class="text-yellow-300">Bitra</span>?',
+                'hero_subtitle' => 'Din pålitliga plattform för verifierade och högkvalitativa tjänster i hela Sverige och internationellt.',
                 'is_active' => true,
                 'order' => 3,
             ],
             [
-                'page_key' => 'why-us',
-                'page_name' => 'Varför Välja Oss',
+                'page_key' => 'how-it-works',
+                'page_name' => 'Så fungerar det',
                 'page_type' => 'static',
-                'meta_title' => 'Varför Välja Bitra Services? - Fördelarna med Vår Plattform',
-                'meta_description' => 'Upptäck fördelarna med Bitra Services. Verifierade företag, transparenta priser, snabb service, kvalitetsgaranti och ROT-avdrag. Din trygghet är vår prioritet.',
-                'hero_title' => 'Varför Välja Bitra Services?',
-                'hero_subtitle' => 'Vi gör det enkelt, tryggt och bekvämt att boka hemtjänster',
-                'features' => [
-                    [
-                        'icon' => '✓',
-                        'title' => 'Verifierade Företag',
-                        'description' => 'Alla våra partner är noggrant kontrollerade och försäkrade.',
-                    ],
-                    [
-                        'icon' => '💰',
-                        'title' => 'Bästa Pris',
-                        'description' => 'Jämför offerter och välj det bästa priset för dig.',
-                    ],
-                    [
-                        'icon' => '⭐',
-                        'title' => 'Kundrecensioner',
-                        'description' => 'Läs äkta recensioner från tidigare kunder.',
-                    ],
-                    [
-                        'icon' => '🔒',
-                        'title' => 'Säker Betalning',
-                        'description' => 'Trygga betalningar med SSL-kryptering.',
-                    ],
-                    [
-                        'icon' => '📞',
-                        'title' => 'Support 24/7',
-                        'description' => 'Vi finns alltid här för att hjälpa dig.',
-                    ],
-                    [
-                        'icon' => '🏆',
-                        'title' => 'Kvalitetsgaranti',
-                        'description' => 'Om du inte är nöjd, gör vi om jobbet.',
-                    ],
-                ],
+                'meta_title' => 'Så fungerar Bitra - Enkelt, säkert och transparent',
+                'meta_description' => 'Lär dig hur Bitra fungerar - från sökning till bokning. Enkelt, säkert och transparent system för alla dina tjänstebehov.',
+                'meta_keywords' => 'så fungerar bitra, tjänstebokning, process, enkelt, säkert',
+                'og_title' => 'Så fungerar Bitra - Enkelt och säkert',
+                'og_description' => 'Upptäck vår enkla 4-stegs process för att boka tjänster.',
+                'canonical_url' => '/how-it-works',
+                'hero_title' => 'Så fungerar Bitra',
+                'hero_subtitle' => 'Enkelt, säkert och transparent - så får du den bästa tjänsten',
                 'is_active' => true,
                 'order' => 4,
             ],
             [
-                'page_key' => 'contact',
-                'page_name' => 'Kontakta Oss',
+                'page_key' => 'reviews',
+                'page_name' => 'Recensioner',
                 'page_type' => 'static',
-                'meta_title' => 'Kontakta Oss - Bitra Services Kundservice',
-                'meta_description' => 'Har du frågor? Kontakta Bitra Services kundservice via telefon, e-post eller vårt kontaktformulär. Vi svarar inom 24 timmar.',
-                'hero_title' => 'Kontakta Oss',
-                'hero_subtitle' => 'Vi finns här för att hjälpa dig',
+                'meta_title' => 'Kundrecensioner - Vad våra kunder säger om Bitra',
+                'meta_description' => 'Läs äkta kundrecensioner och upptäck varför tusentals kunder litar på Bitra för sina tjänstebehov.',
+                'meta_keywords' => 'kundrecensioner, recensioner, bitra, kundomdömen, betyg',
+                'og_title' => 'Kundrecensioner - Bitra',
+                'og_description' => 'Läs vad våra nöjda kunder säger om våra tjänster.',
+                'canonical_url' => '/reviews',
+                'hero_title' => 'Vad våra kunder säger',
+                'hero_subtitle' => 'Läs äkta recensioner från våra nöjda kunder',
                 'is_active' => true,
                 'order' => 5,
             ],
+            [
+                'page_key' => 'categories',
+                'page_name' => 'Kategorier',
+                'page_type' => 'static',
+                'meta_title' => 'Tjänstekategorier - Alla våra tjänster på ett ställe',
+                'meta_description' => 'Utforska alla våra tjänstekategorier - från städning och renovering till trädgårdsarbete och flytt.',
+                'meta_keywords' => 'tjänstekategorier, kategorier, städning, renovering, trädgård, flytt',
+                'og_title' => 'Tjänstekategorier - Bitra',
+                'og_description' => 'Utforska alla våra tjänstekategorier och hitta precis vad du behöver.',
+                'canonical_url' => '/categories',
+                'hero_title' => 'Alla våra tjänster',
+                'hero_subtitle' => 'Utforska våra tjänstekategorier och hitta precis vad du behöver',
+                'is_active' => true,
+                'order' => 6,
+            ],
+            [
+                'page_key' => 'pricing',
+                'page_name' => 'Priser',
+                'page_type' => 'static',
+                'meta_title' => 'Priser - Transparenta priser för alla tjänster',
+                'meta_description' => 'Se våra transparenta priser för alla tjänster. Inga dolda avgifter, inga överraskningar - bara rättvisa priser.',
+                'meta_keywords' => 'priser, priskalkylator, transparenta priser, kostnad, prislista',
+                'og_title' => 'Priser - Transparenta priser för alla tjänster',
+                'og_description' => 'Se våra transparenta priser och beräkna kostnaden för din tjänst.',
+                'canonical_url' => '/pricing',
+                'hero_title' => 'Transparenta priser',
+                'hero_subtitle' => 'Inga dolda avgifter, inga överraskningar - bara rättvisa priser',
+                'is_active' => true,
+                'order' => 7,
+            ],
         ];
 
-        foreach ($pages as $page) {
+        foreach ($pages as $pageData) {
             PageContent::updateOrCreate(
-                ['page_key' => $page['page_key']],
-                $page
+                ['page_key' => $pageData['page_key']],
+                $pageData
             );
         }
     }

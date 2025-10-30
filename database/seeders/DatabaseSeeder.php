@@ -16,12 +16,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Create admin user
-        User::create([
-            'type' => 'admin',
-            'email' => 'admin@bitratjanster.se',
-            'password' => Hash::make('password'),
-            'status' => 'active',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@bitratjanster.se'],
+            [
+                'type' => 'admin',
+                'password' => Hash::make('password'),
+                'status' => 'active',
+            ]
+        );
 
         $this->call([
             ZoneCitySeeder::class,
@@ -30,6 +32,8 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             UserSeeder::class,
             FormSeeder::class,
+            PageContentSeeder::class,
+            SeoPageSeeder::class,
         ]);
     }
 }

@@ -81,6 +81,198 @@
         </div>
     </div>
 
+    <!-- SEO Content Sections -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Intro Paragraph -->
+        <section class="mb-12">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <div class="prose prose-lg max-w-none text-center">
+                    <p class="text-gray-700 leading-relaxed text-xl">
+                        Läs över {{ $stats['total'] }} verifierade kundrecensioner med genomsnittligt betyg {{ $stats['average_rating'] }}/5 stjärnor. 
+                        Våra kunder delar sina upplevelser av både vår plattform och de professionella företag vi samarbetar med. 
+                        Alla recensioner kommer från verkliga kunder som har använt våra tjänster och genomgår vår moderationsprocess.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features/Benefits Section -->
+        <section class="mb-12">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Varför lita på våra recensioner?</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Verifierade recensioner</h3>
+                            <p class="text-gray-600">Alla recensioner kommer från kunder som faktiskt har använt våra tjänster.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">🔍</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Modererade innehåll</h3>
+                            <p class="text-gray-600">Alla recensioner granskas för att säkerställa äkthet och kvalitet.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">⭐</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Höga betyg</h3>
+                            <p class="text-gray-600">Genomsnittligt {{ $stats['average_rating'] }}/5 stjärnor från tusentals nöjda kunder.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">📊</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Detaljerad statistik</h3>
+                            <p class="text-gray-600">Se exakt hur många som gav varje betyg för full transparens.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">🔄</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Dual review system</h3>
+                            <p class="text-gray-600">Kunder recenserar både företaget och vår plattform separat.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-4">
+                        <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                            <span class="text-2xl">💬</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Detaljerade kommentarer</h3>
+                            <p class="text-gray-600">Läs vad kunderna verkligen tycker om sina upplevelser.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process/How It Works Section -->
+        <section class="mb-12">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Så här fungerar vårt recensionssystem</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                            1
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Tjänst utförd</h3>
+                        <p class="text-gray-600">Kunden får sin tjänst utförd av ett verifierat företag.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                            2
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Dual recension</h3>
+                        <p class="text-gray-600">Kunden recenserar både företaget och vår plattform.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                            3
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Moderering</h3>
+                        <p class="text-gray-600">Vi granskar alla recensioner för äkthet och kvalitet.</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                            4
+                        </div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-2">Publicering</h3>
+                        <p class="text-gray-600">Godkända recensioner visas för andra kunder att läsa.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="mb-12">
+            <div class="bg-white rounded-2xl shadow-lg p-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Vanliga frågor om recensioner</h2>
+                <div class="space-y-4">
+                    <div class="border border-gray-200 rounded-lg">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                            <span class="font-semibold text-gray-900">Är alla recensioner äkta?</span>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="px-6 pb-4 text-gray-600 hidden">
+                            Ja, alla recensioner kommer från verifierade kunder som faktiskt har använt våra tjänster. Vi modererar alla recensioner för att säkerställa äkthet.
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                            <span class="font-semibold text-gray-900">Vad är dual review system?</span>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="px-6 pb-4 text-gray-600 hidden">
+                            Vårt dual review system låter kunder recensera både det specifika företaget de använde och vår plattform separat, vilket ger mer detaljerad feedback.
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                            <span class="font-semibold text-gray-900">Kan jag lämna en recension?</span>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="px-6 pb-4 text-gray-600 hidden">
+                            Ja, om du har använt våra tjänster kan du lämna recensioner för både företaget och vår plattform. Du får en länk via email efter att tjänsten är slutförd.
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                            <span class="font-semibold text-gray-900">Hur modererar ni recensioner?</span>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="px-6 pb-4 text-gray-600 hidden">
+                            Vi granskar alla recensioner för att säkerställa att de är äkta, relevanta och följer våra riktlinjer innan de publiceras.
+                        </div>
+                    </div>
+                    <div class="border border-gray-200 rounded-lg">
+                        <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                            <span class="font-semibold text-gray-900">Kan jag redigera min recension?</span>
+                            <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="px-6 pb-4 text-gray-600 hidden">
+                            Ja, du kan kontakta oss för att redigera din recension om dina åsikter har förändrats efter att tjänsten är slutförd.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA Section -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center">
+                <h2 class="text-3xl font-bold mb-4">Redo att lämna din recension?</h2>
+                <p class="text-xl text-blue-100 mb-6">Har du använt våra tjänster? Dela din upplevelse med andra kunder.</p>
+                <a href="{{ route('public.categories') }}" class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-gray-100 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <span class="mr-2">⭐</span>
+                    Börja boka nu
+                </a>
+            </div>
+        </section>
+    </div>
+
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -325,5 +517,21 @@
         </div>
     </div>
 </div>
+
+<script>
+// FAQ Toggle Function
+function toggleFaq(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('svg');
+    
+    if (answer.classList.contains('hidden')) {
+        answer.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        answer.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
 @endsection
 

@@ -223,10 +223,10 @@
                                         @endif
                                         <div class="flex-1">
                                             <h3 class="font-bold text-gray-900 mb-1">{{ $company->company_name }}</h3>
-                                            @if($company->reviews_avg_rating)
+                                            @if($company->reviews_avg_company_rating)
                                                 <div class="flex items-center text-yellow-500 mb-2">
                                                     <span>⭐</span>
-                                                    <span class="ml-1 text-gray-900 font-semibold">{{ number_format($company->reviews_avg_rating, 1) }}</span>
+                                                    <span class="ml-1 text-gray-900 font-semibold">{{ number_format($company->reviews_avg_company_rating, 1) }}</span>
                                                     <span class="text-gray-500 text-sm ml-1">({{ $company->reviews_count }})</span>
                                                 </div>
                                             @endif
@@ -357,4 +357,6 @@
         </div>
     </div>
 </div>
+
+@include('components.cta-section')
 @endsection

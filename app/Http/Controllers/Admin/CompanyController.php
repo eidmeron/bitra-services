@@ -148,7 +148,7 @@ class CompanyController extends Controller
                 $query->with('booking.user')->latest();
             },
             'commissionSetting',
-            'payouts' => function($query) {
+            'deposits' => function($query) {
                 $query->latest()->limit(10);
             }
         ]);

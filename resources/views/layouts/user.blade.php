@@ -39,6 +39,16 @@
                         <span class="mr-1">📋</span> Mina Bokningar
                     </a>
                     
+                    <a href="{{ route('user.loyalty-points.index') }}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('user.loyalty-points.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
+                        <span class="mr-1">⭐</span> Lojalitetspoäng
+                        @if(auth()->user()->loyalty_points_balance > 0)
+                            <span class="ml-1 px-2 py-0.5 text-xs font-semibold bg-yellow-500 text-white rounded-full">
+                                {{ number_format(auth()->user()->loyalty_points_balance) }}
+                            </span>
+                        @endif
+                    </a>
+                    
                     <a href="{{ route('welcome') }}" 
                        class="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-100">
                         <span class="mr-1">🏪</span> Boka Tjänst
@@ -132,6 +142,16 @@
                 <a href="{{ route('user.bookings.index') }}" 
                    class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('user.bookings.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
                     <span class="mr-2">📋</span> Mina Bokningar
+                </a>
+                
+                <a href="{{ route('user.loyalty-points.index') }}" 
+                   class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('user.loyalty-points.*') ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100' }}">
+                    <span class="mr-2">⭐</span> Lojalitetspoäng
+                    @if(auth()->user()->loyalty_points_balance > 0)
+                        <span class="ml-2 px-2 py-0.5 text-xs font-semibold bg-yellow-500 text-white rounded-full">
+                            {{ number_format(auth()->user()->loyalty_points_balance) }}
+                        </span>
+                    @endif
                 </a>
                 
                 <a href="{{ route('welcome') }}" 

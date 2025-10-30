@@ -71,16 +71,23 @@ class ZoneCitySeeder extends Seeder
             $cities = $zoneData['cities'];
             unset($zoneData['cities']);
 
-            $zone = Zone::create($zoneData);
+            $zone = Zone::updateOrCreate(
+                ['slug' => $zoneData['slug']],
+                $zoneData
+            );
 
             foreach ($cities as $cityData) {
-                City::create([
-                    'zone_id' => $zone->id,
-                    'name' => $cityData['name'],
-                    'slug' => Str::slug($cityData['name']),
-                    'city_multiplier' => $cityData['multiplier'],
-                    'status' => 'active',
-                ]);
+                City::updateOrCreate(
+                    [
+                        'zone_id' => $zone->id,
+                        'slug' => Str::slug($cityData['name'])
+                    ],
+                    [
+                        'name' => $cityData['name'],
+                        'city_multiplier' => $cityData['multiplier'],
+                        'status' => 'active',
+                    ]
+                );
             }
         }
     }

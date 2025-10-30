@@ -41,7 +41,7 @@ final class ProfileController extends Controller
             'address' => 'nullable|string|max:255',
             'postal_code' => 'nullable|string|max:10',
             'city' => 'nullable|string|max:100',
-            'logo' => 'nullable|image|max:2048', // 2MB max
+            'logo' => 'nullable|image|max:2048000', // 2000MB max
             'payout_method' => 'nullable|in:swish,bank_account',
             'swish_number' => 'nullable|required_if:payout_method,swish|string|max:20',
             'bank_name' => 'nullable|required_if:payout_method,bank_account|string|max:100',

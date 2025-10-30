@@ -25,6 +25,43 @@
                 <p class="text-sm text-gray-600">{{ $booking->city->name }}</p>
             </div>
 
+            <!-- Date and Time Information -->
+            @if($booking->slotTime)
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="font-semibold mb-2">📅 Datum och Tid</h4>
+                    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-4 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs text-gray-600 uppercase font-semibold">Datum</label>
+                                <p class="text-lg font-bold text-blue-900">
+                                    {{ $booking->slotTime->date->format('Y-m-d') }} 
+                                    ({{ $booking->slotTime->date->format('l') }})
+                                </p>
+                            </div>
+                            <div>
+                                <label class="text-xs text-gray-600 uppercase font-semibold">Tid</label>
+                                <p class="text-lg font-bold text-blue-900">
+                                    {{ \Carbon\Carbon::parse($booking->slotTime->start_time)->format('H:i') }} - 
+                                    {{ \Carbon\Carbon::parse($booking->slotTime->end_time)->format('H:i') }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @elseif($booking->preferred_date)
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="font-semibold mb-2">📅 Önskat Datum</h4>
+                    <div class="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 p-4 rounded-lg">
+                        <p class="text-lg font-bold text-orange-900">
+                            {{ $booking->preferred_date->format('Y-m-d H:i') }}
+                        </p>
+                        <p class="text-sm text-orange-700 mt-1">
+                            Ingen specifik tidslucka vald
+                        </p>
+                    </div>
+                </div>
+            @endif
+
             <div class="border-t pt-4 mt-4">
                 <h4 class="font-semibold mb-2">Kunduppgifter</h4>
                 <div class="grid grid-cols-2 gap-4">
@@ -151,14 +188,21 @@
                                 </div>
                             @endif
                             
+                            @php
+                                $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                                $totalWithVAT = $booking->final_price;
+                                $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                                $vatAmount = $totalWithVAT - $baseAmount;
+                            @endphp
+                            
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-700">Delsumma:</span>
-                                <span class="font-semibold">{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                                <span class="text-gray-700">Delsumma (exkl. moms):</span>
+                                <span class="font-semibold">{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
                             </div>
 
                             <div class="flex justify-between text-sm">
-                                <span class="text-gray-700">Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
-                                <span class="font-semibold">{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                                <span class="text-gray-700">Moms ({{ number_format($taxRate, 2, ',', ' ') }}%):</span>
+                                <span class="font-semibold">{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
                             </div>
 
                             @if($booking->total_extra_fees > 0)
@@ -283,13 +327,20 @@
                         <span>-{{ number_format($booking->discount_amount, 2, ',', ' ') }} kr</span>
                     </div>
                 @endif
+                @php
+                    $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                    $totalWithVAT = $booking->final_price;
+                    $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                    $vatAmount = $totalWithVAT - $baseAmount;
+                @endphp
+                
                 <div class="flex justify-between">
-                    <span>Delsumma:</span>
-                    <span>{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                    <span>Delsumma (exkl. moms):</span>
+                    <span>{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 <div class="flex justify-between">
-                    <span>Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
-                    <span>{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                    <span>Moms ({{ number_format($taxRate, 2, ',', ' ') }}%):</span>
+                    <span>{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 @if($booking->total_extra_fees > 0)
                     <div class="flex justify-between text-blue-600">

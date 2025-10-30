@@ -14,6 +14,9 @@ Route::get('/', function () {
 // Public form routes
 Route::get('/form/{token}', [PublicFormController::class, 'show'])->name('public.form');
 Route::post('/form/{token}', [BookingSubmissionController::class, 'store'])->name('booking.submit');
+
+// Route alias for booking submission (backward compatibility)
+Route::post('/booking/submit/{token}', [BookingSubmissionController::class, 'store'])->name('booking.submit.alias');
 Route::get('/booking-success/{booking}', [\App\Http\Controllers\Public\BookingSuccessController::class, 'show'])->name('public.form.success');
 Route::post('/booking-success/{booking}/create-account', [\App\Http\Controllers\Public\BookingSuccessController::class, 'createAccount'])->name('public.booking.create-account');
 
@@ -23,9 +26,11 @@ Route::post('/check-booking', [App\Http\Controllers\Public\BookingCheckControlle
 
 // Guest chat and reviews
 Route::post('/booking/{booking}/chat', [\App\Http\Controllers\Public\GuestChatController::class, 'send'])->name('public.booking.chat.send');
-Route::post('/booking/{booking}/review', [\App\Http\Controllers\Public\GuestReviewController::class, 'submit'])->name('public.booking.review.submit');
-Route::get('/booking/{publicToken}/review', [\App\Http\Controllers\Public\GuestReviewController::class, 'show'])->name('public.booking.review.show');
-Route::post('/booking/{publicToken}/review', [\App\Http\Controllers\Public\GuestReviewController::class, 'submitByToken'])->name('public.booking.review.submit.token');
+
+// Dual review system
+Route::get('/booking/{booking}/review', [\App\Http\Controllers\Public\DualReviewController::class, 'show'])->name('public.booking.review.show');
+Route::post('/booking/{booking}/review', [\App\Http\Controllers\Public\DualReviewController::class, 'submit'])->name('public.booking.review.submit');
+Route::get('/booking/{booking}/review/success', [\App\Http\Controllers\Public\DualReviewController::class, 'success'])->name('public.booking.review.success');
 
 // Booking Chat (accessible by users and guests)
 Route::get('/booking/{bookingNumber}/chat', [BookingChatController::class, 'show'])->name('booking.chat');
@@ -65,8 +70,90 @@ Route::get('/categories', function () {
         ->withCount('services')
         ->orderBy('name')
         ->get();
-    return view('public.categories.index', compact('categories'));
+    
+    // Get approved platform reviews (Bitra reviews) for testimonials
+    $platformReviews = \App\Models\Review::where('bitra_status', 'approved')
+        ->whereNotNull('bitra_rating')
+        ->whereNotNull('bitra_review_text')
+        ->with(['booking.user', 'service'])
+        ->latest()
+        ->limit(6)
+        ->get();
+    
+    // Get SEO data
+    $seoData = \App\Services\SeoService::getSeoData('category');
+    
+    return view('public.categories.index', compact('categories', 'platformReviews', 'seoData'));
 })->name('public.categories');
+
+// Why Us Page
+Route::get('/why-us', function () {
+    // Get approved platform reviews (Bitra reviews) for testimonials
+    $platformReviews = \App\Models\Review::where('bitra_status', 'approved')
+        ->whereNotNull('bitra_rating')
+        ->whereNotNull('bitra_review_text')
+        ->with(['booking.user', 'service'])
+        ->latest()
+        ->limit(8)
+        ->get();
+    
+    // Get SEO data
+    $seoData = \App\Services\SeoService::getSeoData('about');
+    
+    return view('public.why-us', compact('platformReviews', 'seoData'));
+})->name('public.why-us');
+
+// Reviews Page
+Route::get('/reviews', function () {
+    // Get all approved platform reviews (Bitra reviews)
+    $platformReviews = \App\Models\Review::where('bitra_status', 'approved')
+        ->whereNotNull('bitra_rating')
+        ->whereNotNull('bitra_review_text')
+        ->with(['booking.user', 'service', 'company'])
+        ->latest()
+        ->paginate(12);
+    
+    // Get review statistics
+    $stats = [
+        'total_reviews' => \App\Models\Review::where('bitra_status', 'approved')->whereNotNull('bitra_rating')->count(),
+        'average_rating' => \App\Models\Review::where('bitra_status', 'approved')->whereNotNull('bitra_rating')->avg('bitra_rating'),
+        'five_star' => \App\Models\Review::where('bitra_status', 'approved')->where('bitra_rating', 5)->count(),
+        'four_star' => \App\Models\Review::where('bitra_status', 'approved')->where('bitra_rating', 4)->count(),
+        'three_star' => \App\Models\Review::where('bitra_status', 'approved')->where('bitra_rating', 3)->count(),
+        'two_star' => \App\Models\Review::where('bitra_status', 'approved')->where('bitra_rating', 2)->count(),
+        'one_star' => \App\Models\Review::where('bitra_status', 'approved')->where('bitra_rating', 1)->count(),
+    ];
+    
+    // Get SEO data
+    $seoData = \App\Services\SeoService::getSeoData('reviews');
+    
+    return view('public.reviews', compact('platformReviews', 'stats', 'seoData'));
+})->name('public.reviews');
+
+// How It Works Page
+Route::get('/how-it-works', function () {
+    // Get SEO data
+    $seoData = \App\Services\SeoService::getSeoData('about');
+    
+    return view('public.how-it-works', compact('seoData'));
+})->name('how-it-works');
+
+// About Page
+Route::get('/about', function () {
+    // Get approved platform reviews (Bitra reviews) for testimonials
+    $platformReviews = \App\Models\Review::where('bitra_status', 'approved')
+        ->whereNotNull('bitra_rating')
+        ->whereNotNull('bitra_review_text')
+        ->with(['booking.user', 'service'])
+        ->latest()
+        ->limit(6)
+        ->get();
+    
+    // Get SEO data
+    $seoData = \App\Services\SeoService::getSeoData('about');
+    
+    return view('public.about', compact('platformReviews', 'seoData'));
+})->name('public.about');
 
 Route::get('/category/{category:slug}', function (\App\Models\Category $category) {
     $category->load(['services' => function($query) {
@@ -78,7 +165,7 @@ Route::get('/category/{category:slug}', function (\App\Models\Category $category
         $query->where('category_id', $category->id);
     })
     ->where('status', 'active')
-    ->withAvg('reviews', 'rating')
+    ->withAvg('reviews', 'company_rating')
     ->withCount('reviews')
     ->take(6)
     ->get();
@@ -165,12 +252,12 @@ Route::get('/companies', function (Illuminate\Http\Request $request) {
     $sortBy = $request->get('sort', 'rating'); // Default: best rated first
     
     $query->with(['services', 'cities', 'user'])
-          ->withAvg('reviews', 'rating')
+          ->withAvg('reviews', 'company_rating')
           ->withCount('reviews');
     
     switch ($sortBy) {
         case 'rating':
-            $query->orderByDesc('reviews_avg_rating');
+            $query->orderByDesc('reviews_avg_company_rating');
             break;
         case 'reviews':
             $query->orderByDesc('reviews_count');
@@ -179,7 +266,7 @@ Route::get('/companies', function (Illuminate\Http\Request $request) {
             $query->orderBy('company_name');
             break;
         default:
-            $query->orderByDesc('reviews_avg_rating');
+            $query->orderByDesc('reviews_avg_company_rating');
     }
     
     $companies = $query->paginate(12);
@@ -197,19 +284,19 @@ Route::get('/company/{company}', function (\App\Models\Company $company) {
         'cities', 
         'user', 
         'reviews' => function($query) {
-            $query->where('status', 'approved')
+            $query->where('company_status', 'approved')
                 ->with('booking.user')
                 ->orderBy('created_at', 'desc');
         }
     ])
-    ->loadAvg('reviews', 'rating')
+    ->loadAvg('reviews', 'company_rating')
     ->loadCount('reviews');
     
     // Get similar companies
     $similarCompanies = \App\Models\Company::where('status', 'active')
         ->where('id', '!=', $company->id)
         ->with(['services', 'cities', 'user'])
-        ->withAvg('reviews', 'rating')
+        ->withAvg('reviews', 'company_rating')
         ->withCount('reviews')
         ->limit(4)
         ->get();
@@ -260,6 +347,19 @@ Route::get('/api/cities', [\App\Http\Controllers\Api\CityController::class, 'ind
 Route::get('/api/services', [\App\Http\Controllers\Api\ServiceController::class, 'index'])->name('api.services');
 Route::get('/api/categories', [\App\Http\Controllers\Api\CategoryController::class, 'index'])->name('api.categories');
 
+// Advanced search API routes
+Route::get('/api/search', [\App\Http\Controllers\Api\AdvancedSearchController::class, 'search'])->name('api.search');
+Route::get('/api/search/autocomplete', [\App\Http\Controllers\Api\AdvancedSearchController::class, 'autocomplete'])->name('api.search.autocomplete');
+
+// Slot time API routes
+Route::get('/api/slot-times/available', [\App\Http\Controllers\Api\SlotTimeController::class, 'getAvailableSlots'])->name('api.slot-times.available');
+Route::get('/api/slot-times/company', [\App\Http\Controllers\Api\SlotTimeController::class, 'getCompanySlotTimes'])->name('api.slot-times.company');
+Route::get('/api/slot-times/all-available', [\App\Http\Controllers\Api\SlotTimeController::class, 'getAllAvailableSlots'])->name('api.slot-times.all-available');
+
+
+// City page (named route used on homepage): show all services in the city
+// MUST be BEFORE /{city}/{service} route to avoid conflicts
+Route::get('/city/{city:slug}', [\App\Http\Controllers\Public\CityController::class, 'show'])->name('public.city.show');
 
 // Explicit service page route to avoid catch-all conflicts (must be BEFORE /{city}/{service})
 Route::get('/service/{service:slug}', function (\App\Models\Service $service) {
@@ -269,7 +369,7 @@ Route::get('/service/{service:slug}', function (\App\Models\Service $service) {
             $q->where('services.id', $service->id);
         })
         ->with('user')
-        ->withAvg('reviews', 'rating')
+        ->withAvg('reviews', 'company_rating')
         ->withCount('reviews')
         ->take(6)
         ->get();
@@ -309,10 +409,6 @@ Route::get('/why-us', function () {
     return view('public.pages.why-us');
 })->name('why-us');
 
-// City page (named route used on homepage): redirect to company listing filtered by city
-Route::get('/city/{city:slug}', function (\App\Models\City $city) {
-    return redirect()->route('public.companies', ['city' => $city->id]);
-})->name('public.city.show');
 
 // Policy Pages
 Route::prefix('policies')->name('policy.')->group(function() {

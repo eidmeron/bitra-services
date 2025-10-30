@@ -214,9 +214,9 @@
         </table>
     </div>
     
-    @if(isset($balance['payouts']) && $balance['payouts']->hasPages())
-        <div class="px-6 py-4 bg-gray-50 border-t">
-            {{ $balance['payouts']->links() }}
+    @if(isset($balance['payouts']) && $balance['payouts']->count() > 20)
+        <div class="px-6 py-4 bg-gray-50 border-t text-center">
+            <p class="text-sm text-gray-500">Visar de senaste 20 utbetalningarna</p>
         </div>
     @endif
 </div>

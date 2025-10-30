@@ -33,6 +33,95 @@ final class CompanyRegistrationController extends Controller
     }
     
     /**
+     * Validate specific step
+     */
+    public function validateStep(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $step = $request->input('step', 1);
+        $rules = [];
+        $messages = [];
+        
+        switch ($step) {
+            case 1:
+                $rules = [
+                    'company_name' => 'required|string|max:255',
+                    'org_number' => 'required|string|max:50|unique:companies,company_org_number',
+                    'company_email' => 'required|email|max:255',
+                    'company_phone' => 'required|string|max:20',
+                    'company_address' => 'required|string|max:255',
+                    'company_city' => 'required|string|max:100',
+                    'company_zip' => 'required|string|max:10',
+                    'company_website' => 'nullable|url|max:255',
+                ];
+                $messages = [
+                    'company_name.required' => 'Företagsnamn är obligatoriskt.',
+                    'org_number.required' => 'Organisationsnummer är obligatoriskt.',
+                    'org_number.unique' => 'Detta organisationsnummer är redan registrerat.',
+                    'company_email.required' => 'Företagsepost är obligatoriskt.',
+                    'company_email.email' => 'Ange en giltig e-postadress.',
+                    'company_phone.required' => 'Företagstelefon är obligatoriskt.',
+                    'company_address.required' => 'Adress är obligatoriskt.',
+                    'company_city.required' => 'Stad är obligatoriskt.',
+                    'company_zip.required' => 'Postnummer är obligatoriskt.',
+                    'company_website.url' => 'Ange en giltig webbadress.',
+                ];
+                break;
+                
+            case 2:
+                $rules = [
+                    'services' => 'required|array|min:1',
+                    'services.*' => 'exists:services,id',
+                    'cities' => 'required|array|min:1',
+                    'cities.*' => 'exists:cities,id',
+                    'description' => 'required|string|min:50',
+                ];
+                $messages = [
+                    'services.required' => 'Välj minst en tjänst.',
+                    'services.min' => 'Välj minst en tjänst.',
+                    'cities.required' => 'Välj minst en stad.',
+                    'cities.min' => 'Välj minst en stad.',
+                    'description.required' => 'Företagsbeskrivning är obligatoriskt.',
+                    'description.min' => 'Beskrivningen måste vara minst 50 tecken.',
+                ];
+                break;
+                
+            case 3:
+                $rules = [
+                    'name' => 'required|string|max:255',
+                    'email' => 'required|email|max:255|unique:users,email',
+                    'password' => 'required|string|min:8|confirmed',
+                    'terms' => 'accepted',
+                ];
+                $messages = [
+                    'name.required' => 'Ditt namn är obligatoriskt.',
+                    'email.required' => 'Din e-post är obligatoriskt.',
+                    'email.email' => 'Ange en giltig e-postadress.',
+                    'email.unique' => 'Denna e-postadress är redan registrerad.',
+                    'password.required' => 'Lösenord är obligatoriskt.',
+                    'password.min' => 'Lösenordet måste vara minst 8 tecken.',
+                    'password.confirmed' => 'Lösenorden matchar inte.',
+                    'terms.accepted' => 'Du måste acceptera användarvillkoren.',
+                ];
+                break;
+        }
+        
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules, $messages);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors(),
+                'step' => $step
+            ], 422);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'step' => $step
+        ]);
+    }
+
+    /**
      * Handle company registration
      */
     public function register(Request $request): RedirectResponse
@@ -62,7 +151,7 @@ final class CompanyRegistrationController extends Controller
             'password' => 'required|string|min:8|confirmed',
             
             // Optional
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048000',
             'terms' => 'accepted',
         ], [
             // Swedish error messages

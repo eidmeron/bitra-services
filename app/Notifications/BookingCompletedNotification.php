@@ -34,7 +34,11 @@ final class BookingCompletedNotification extends Notification implements ShouldQ
             ->line('**Stad:** ' . $this->booking->city->name)
             ->line('**Totalt pris:** ' . number_format($this->booking->total_with_tax ?? $this->booking->final_price, 0, ',', ' ') . ' kr (inkl. moms)')
             ->line('')
-            ->line('**Viktigt:** Systemet kommer att skicka en faktura till dig inom kort. Faktura kommer snart från våra finansavdelning.')
+            ->line('Vår partner (' . $this->booking->company->company_name . ') kommer att skicka din faktura inom kort.')
+            ->line('Om du har några frågor gällande betalningen eller behöver ytterligare information, är du alltid välkommen att kontakta oss.')
+            ->line('')
+            ->line('Vi skulle uppskatta om du kunde lämna en recension om din upplevelse med både företaget och vår plattform.')
+            ->action('Lämna recension', route('public.booking.review.show', $this->booking))
             ->line('')
             ->line('Tack för att du valde våra tjänster!')
             ->salutation('Mvh, ' . site_name());

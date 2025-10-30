@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\AnalyticsTrackingMiddleware;
 use App\Http\Middleware\CompanyMiddleware;
 use App\Http\Middleware\UserMiddleware;
 use Illuminate\Foundation\Application;
@@ -17,8 +18,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'admin' => AdminMiddleware::class,
+            'analytics' => AnalyticsTrackingMiddleware::class,
             'company' => CompanyMiddleware::class,
             'user' => UserMiddleware::class,
+        ]);
+        
+        // Add analytics tracking to web routes
+        $middleware->web(append: [
+            AnalyticsTrackingMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

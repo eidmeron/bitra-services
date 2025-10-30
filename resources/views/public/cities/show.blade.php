@@ -1,381 +1,421 @@
 @extends('layouts.public')
 
-@section('title', 'Professionella Tjänster i ' . $city->name . ' - Boka Online')
-@section('meta_description', 'Hitta och boka professionella tjänster i ' . $city->name . '. Verifierade partners, snabb bokning, transparenta priser. ROT-avdrag och kvalitetsgaranti.')
-@section('meta_keywords', $city->name . ', tjänster, bokning, städning, hantverkare, trädgård, ROT-avdrag, ' . ($city->zone->name ?? ''))
+@section('title', $city->og_title ?: $seoTitle)
+@section('description', $city->og_description ?: $seoDescription)
+
+@push('meta')
+    @if($city->meta_keywords)
+        <meta name="keywords" content="{{ $city->meta_keywords }}">
+    @endif
+    @if($city->og_title)
+        <meta property="og:title" content="{{ $city->og_title }}">
+    @endif
+    @if($city->og_description)
+        <meta property="og:description" content="{{ $city->og_description }}">
+    @endif
+    @if($city->og_image)
+        <meta property="og:image" content="{{ Storage::url($city->og_image) }}">
+    @endif
+    @if($city->twitter_title)
+        <meta name="twitter:title" content="{{ $city->twitter_title }}">
+    @endif
+    @if($city->twitter_description)
+        <meta name="twitter:description" content="{{ $city->twitter_description }}">
+    @endif
+    @if($city->twitter_image)
+        <meta name="twitter:image" content="{{ Storage::url($city->twitter_image) }}">
+    @endif
+@endpush
 
 @section('content')
-<div class="bg-gray-50 min-h-screen">
+<div class="min-h-screen bg-gray-50">
     <!-- Hero Section -->
-    <div class="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-20 overflow-hidden">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl transform -translate-x-1/2 -translate-y-1/2"></div>
-            <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full filter blur-3xl transform translate-x-1/2 translate-y-1/2"></div>
-        </div>
-        
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <!-- Breadcrumb -->
-            <div class="text-sm text-blue-200 mb-4">
-                <a href="{{ route('welcome') }}" class="hover:text-white">Hem</a>
-                <span class="mx-2">›</span>
-                <a href="{{ route('public.cities') }}" class="hover:text-white">Städer</a>
-                <span class="mx-2">›</span>
-                <span>{{ $city->name }}</span>
-            </div>
-
+    <div class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div class="text-center">
-                <h1 class="text-5xl md:text-6xl font-bold mb-4">
-                    🏙️ Professionella Tjänster i {{ $city->name }}
+                <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                    Tjänster i {{ $city->name }}
                 </h1>
-                <p class="text-xl text-blue-100 mb-2">
-                    {{ $city->zone->name ?? 'Sverige' }}
+                <p class="text-xl text-gray-600 mb-8">
+                    Hitta de bästa tjänsterna och företagen i {{ $city->name }}
                 </p>
-                <p class="text-lg text-blue-200 max-w-3xl mx-auto mb-8">
-                    Hitta och boka verifierade tjänster från topprankade partners i {{ $city->name }}. 
-                    Snabb bokning, transparenta priser och kvalitetsgaranti.
-                </p>
-
-                <!-- Quick Stats -->
-                <div class="flex flex-wrap justify-center gap-6 mt-8">
-                    <div class="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/30">
-                        <div class="text-3xl font-bold">{{ $stats['total_services'] }}+</div>
-                        <div class="text-sm text-blue-200">Tjänster</div>
+                
+                @if($services->count() > 0)
+                    <div class="flex flex-wrap justify-center gap-4 text-sm text-gray-500">
+                        <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full">
+                            {{ $services->count() }} tjänster
+                        </span>
+                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                            {{ $companies->count() }} företag
+                        </span>
+                        <span class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full">
+                            {{ $categories->count() }} kategorier
+                        </span>
                     </div>
-                    <div class="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/30">
-                        <div class="text-3xl font-bold">{{ $stats['total_companies'] }}+</div>
-                        <div class="text-sm text-blue-200">Partners</div>
-                    </div>
-                    <div class="bg-white/10 backdrop-blur-sm rounded-lg px-6 py-4 border border-white/30">
-                        <div class="text-3xl font-bold">{{ $stats['total_categories'] }}+</div>
-                        <div class="text-sm text-blue-200">Kategorier</div>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
-        <!-- Categories with Services Sliders -->
-        @if($categories->isNotEmpty())
-            @foreach($categories as $category)
-            <div class="mb-16">
-                <!-- Category Header -->
-                <div class="flex items-center justify-between mb-6">
-                    <div>
-                        <h2 class="text-3xl font-bold text-gray-900 flex items-center">
-                            <span class="text-4xl mr-3">{{ $category->icon ?? '📂' }}</span>
-                            {{ $category->name }} i {{ $city->name }}
-                        </h2>
-                        <p class="text-gray-600 mt-2 max-w-3xl">
-                            {{ $category->description }}
-                        </p>
-                        <p class="text-sm text-gray-500 mt-1">
-                            {{ $category->services_count }} tjänster tillgängliga
-                        </p>
+    <!-- SEO Content Sections -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Intro Paragraph -->
+        @if($city->intro_paragraph)
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <div class="prose prose-lg max-w-none">
+                        <p class="text-gray-700 leading-relaxed">{{ $city->intro_paragraph }}</p>
                     </div>
-                    <a href="{{ route('public.category.show', $category->slug) }}" 
-                       class="hidden md:inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                        Se alla →
-                    </a>
                 </div>
+            </section>
+        @endif
 
-                <!-- Services Slider -->
-                @if($category->services->isNotEmpty())
-                <div class="relative" x-data="{ 
-                    currentSlide: 0,
-                    totalSlides: {{ ceil($category->services->count() / 3) }},
-                    nextSlide() {
-                        this.currentSlide = (this.currentSlide + 1) % this.totalSlides;
-                    },
-                    prevSlide() {
-                        this.currentSlide = (this.currentSlide - 1 + this.totalSlides) % this.totalSlides;
-                    }
-                }">
-                    <!-- Slider Container -->
-                    <div class="overflow-hidden">
-                        <div class="flex transition-transform duration-500 ease-in-out" 
-                             :style="`transform: translateX(-${currentSlide * 100}%)`">
-                            @foreach($category->services->chunk(3) as $serviceChunk)
-                            <div class="min-w-full">
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 px-1">
-                                    @foreach($serviceChunk as $service)
-                                    <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                                        <!-- Service Image/Icon -->
-                                        <div class="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">
-                                            @if($service->image)
-                                                <img src="{{ Storage::url($service->image) }}" 
-                                                     alt="{{ $service->name }}" 
-                                                     class="w-full h-full object-cover hover:scale-110 transition-transform duration-300">
-                                            @else
-                                                <div class="w-full h-full flex items-center justify-center text-white text-6xl">
-                                                    {{ $service->icon ?? '🛠️' }}
-                                                </div>
-                                            @endif
-                                            
-                                            @if($service->rot_eligible)
-                                                <div class="absolute top-4 right-4 px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
-                                                    🏡 ROT {{ $service->rot_percent }}%
-                                                </div>
-                                            @endif
-                                        </div>
-                                        
-                                        <div class="p-6">
-                                            <h3 class="text-xl font-bold text-gray-900 mb-2">
-                                                {{ $service->name }}
-                                            </h3>
-                                            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-                                                {{ $service->description }}
-                                            </p>
-
-                                            @if($service->base_price)
-                                                <div class="mb-4 flex items-center justify-between py-2 px-3 bg-blue-50 rounded-lg">
-                                                    <span class="text-sm text-gray-600">Från:</span>
-                                                    <span class="text-xl font-bold text-blue-600">
-                                                        {{ number_format($service->base_price, 0, ',', ' ') }} kr
-                                                    </span>
-                                                </div>
-                                            @endif
-
-                                            <div class="space-y-2">
-                                                @php
-                                                    $activeForm = $service->active_form;
-                                                    $hasForm = $activeForm && $activeForm->token;
-                                                @endphp
-                                                
-                                                @if($hasForm)
-                                                    <a href="{{ route('public.form', $activeForm->token) }}" 
-                                                       class="block w-full text-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
-                                                        📅 Boka Nu
-                                                    </a>
-                                                @endif
-                                                
-                                                <a href="{{ route('public.city-service.landing', [$city->slug, $service->slug]) }}" 
-                                                   class="block w-full text-center px-4 py-2 bg-white border-2 border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all">
-                                                    📖 Läs Mer
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    @endforeach
+        <!-- Features/Benefits Section -->
+        @if($city->features_benefits && count($city->features_benefits) > 0)
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Varför välja oss i {{ $city->name }}?</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($city->features_benefits as $feature)
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <span class="text-2xl">✨</span>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $feature['title'] ?? 'Fördel' }}</h3>
+                                    <p class="text-gray-600">{{ $feature['description'] ?? $feature }}</p>
                                 </div>
                             </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <!-- Process/How It Works Section -->
+        @if($city->process_steps && count($city->process_steps) > 0)
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Så här fungerar det</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        @foreach($city->process_steps as $index => $step)
+                            <div class="text-center">
+                                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                                    {{ $index + 1 }}
+                                </div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">{{ $step['title'] ?? 'Steg ' . ($index + 1) }}</h3>
+                                <p class="text-gray-600">{{ $step['description'] ?? $step }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <!-- FAQ Section -->
+        @if($city->faq_items && count($city->faq_items) > 0)
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Vanliga frågor om tjänster i {{ $city->name }}</h2>
+                    <div class="space-y-4">
+                        @foreach($city->faq_items as $faq)
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                                    <span class="font-semibold text-gray-900">{{ $faq['question'] ?? 'Fråga' }}</span>
+                                    <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div class="px-6 pb-4 text-gray-600 hidden">
+                                    {{ $faq['answer'] ?? $faq }}
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <!-- Testimonials Section -->
+        @if($city->testimonials && count($city->testimonials) > 0)
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Vad våra kunder säger</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($city->testimonials as $testimonial)
+                            <div class="bg-gray-50 rounded-xl p-6">
+                                <div class="flex items-center mb-4">
+                                    @for($i = 0; $i < 5; $i++)
+                                        <span class="text-yellow-400">⭐</span>
+                                    @endfor
+                                </div>
+                                <p class="text-gray-700 mb-4 italic">"{{ $testimonial['content'] ?? $testimonial }}"</p>
+                                <div class="flex items-center">
+                                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">
+                                        {{ substr($testimonial['name'] ?? 'K', 0, 1) }}
+                                    </div>
+                                    <div class="ml-3">
+                                        <p class="font-semibold text-gray-900">{{ $testimonial['name'] ?? 'Kund' }}</p>
+                                        <p class="text-sm text-gray-500">{{ $testimonial['location'] ?? $city->name }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </section>
+        @endif
+
+        <!-- CTA Section -->
+        @if($city->cta_text || $city->cta_button_text)
+            <section class="mb-12">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center">
+                    <h2 class="text-3xl font-bold mb-4">{{ $city->cta_text ?: 'Redo att komma igång?' }}</h2>
+                    @if($city->cta_button_text && $city->cta_button_url)
+                        <a href="{{ $city->cta_button_url }}" class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-gray-100 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                            <span class="mr-2">🚀</span>
+                            {{ $city->cta_button_text }}
+                        </a>
+                    @endif
+                </div>
+            </section>
+        @endif
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        @if($services->count() > 0)
+            <!-- Services Section -->
+            <div class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-900 mb-8">Tillgängliga Tjänster</h2>
+                
+                <!-- Categories Filter -->
+                @if($categories->count() > 1)
+                    <div class="mb-6">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="category-filter bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium" data-category="all">
+                                Alla ({{ $services->count() }})
+                            </button>
+                            @foreach($categories as $category)
+                                <button class="category-filter bg-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-300" data-category="{{ $category->slug }}">
+                                    {{ $category->name }} ({{ $category->services_count }})
+                                </button>
                             @endforeach
                         </div>
                     </div>
-
-                    <!-- Navigation Arrows -->
-                    @if($category->services->count() > 3)
-                    <button @click="prevSlide" 
-                            class="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-12 h-12 bg-white rounded-full shadow-lg hover:bg-gray-100 transition flex items-center justify-center text-gray-700 hover:scale-110">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-                        </svg>
-                    </button>
-                    <button @click="nextSlide" 
-                            class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-12 h-12 bg-white rounded-full shadow-lg hover:bg-gray-100 transition flex items-center justify-center text-gray-700 hover:scale-110">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </button>
-
-                    <!-- Dots Indicator -->
-                    <div class="flex justify-center mt-6 space-x-2">
-                        <template x-for="i in totalSlides" :key="i">
-                            <button @click="currentSlide = i - 1" 
-                                    class="w-3 h-3 rounded-full transition-all"
-                                    :class="currentSlide === (i - 1) ? 'bg-blue-600 w-8' : 'bg-gray-300'">
-                            </button>
-                        </template>
-                    </div>
-                    @endif
-                </div>
                 @endif
 
-                <!-- Mobile: View All Button -->
-                <div class="md:hidden mt-6 text-center">
-                    <a href="{{ route('public.category.show', $category->slug) }}" 
-                       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                        Se alla {{ $category->name }} →
-                    </a>
-                </div>
-            </div>
-            @endforeach
-        @endif
+                <!-- Services Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="services-grid">
+                    @foreach($services as $service)
+                        <div class="service-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6" data-category="{{ $service->category->slug ?? 'uncategorized' }}">
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                                        <a href="{{ route('public.city-service.landing', ['city' => $city->slug, 'service' => $service->slug]) }}" class="hover:text-blue-600">
+                                            {{ $service->name }}
+                                        </a>
+                                    </h3>
+                                    @if($service->category)
+                                        <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                            {{ $service->category->name }}
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                            
+                            @if($service->description)
+                                <p class="text-gray-600 text-sm mb-4 line-clamp-3">
+                                    {{ Str::limit($service->description, 120) }}
+                                </p>
+                            @endif
 
-        <!-- Why Choose Us Features -->
-        <div class="my-16 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-xl p-8 md:p-12">
-            <h2 class="text-3xl font-bold text-gray-900 text-center mb-12">
-                ⭐ Varför välja våra tjänster i {{ $city->name }}?
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg">
-                        ✓
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Verifierade Partners</h3>
-                    <p class="text-gray-600">
-                        Alla partners är noggrant granskade och verifierade för din trygghet.
-                    </p>
-                </div>
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-green-600 to-teal-600 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg">
-                        ⚡
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Snabb Bokning</h3>
-                    <p class="text-gray-600">
-                        Boka online på några minuter. Få bekräftelse direkt och välj tid som passar dig.
-                    </p>
-                </div>
-                <div class="text-center">
-                    <div class="w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white text-3xl mx-auto mb-4 shadow-lg">
-                        💰
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Transparenta Priser</h3>
-                    <p class="text-gray-600">
-                        Se priser innan du bokar. ROT-avdrag ingår automatiskt på kvalificerade tjänster.
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Companies Section -->
-        @if($companies->isNotEmpty())
-        <div class="my-16">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-gray-900 mb-4">
-                    🏢 Topprankade Partner i {{ $city->name }}
-                </h2>
-                <p class="text-gray-600 max-w-2xl mx-auto">
-                    Professionella partners med hög kvalitet och goda recensioner
-                </p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                @foreach($companies as $company)
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 border border-gray-100">
-                    <div class="p-6">
-                        <div class="flex items-start space-x-4 mb-4">
-                            @if($company->logo)
-                                <img src="{{ Storage::url($company->logo) }}" 
-                                     alt="{{ $company->company_name }}" 
-                                     class="w-16 h-16 rounded-lg object-cover shadow-md">
-                            @else
-                                <div class="w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">
-                                    {{ strtoupper(substr($company->company_name ?? 'C', 0, 2)) }}
+                            <!-- Pricing -->
+                            @if($service->base_price)
+                                <div class="mb-4">
+                                    <span class="text-2xl font-bold text-green-600">
+                                        {{ number_format($service->base_price, 0, ',', ' ') }} kr
+                                    </span>
+                                    @if($service->subscription_types)
+                                        <span class="text-sm text-gray-500 ml-2">
+                                            från
+                                        </span>
+                                    @endif
                                 </div>
                             @endif
-                            
-                            <div class="flex-1">
-                                <h3 class="text-lg font-bold text-gray-900 mb-1">
-                                    {{ $company->company_name ?? 'Partner' }}
-                                </h3>
-                                
-                                @if($company->reviews_avg_rating)
-                                    <div class="flex items-center">
-                                        <div class="flex">
-                                            @for($i = 1; $i <= 5; $i++)
-                                                @if($i <= round($company->reviews_avg_rating))
-                                                    <svg class="w-4 h-4 text-yellow-400 fill-current" viewBox="0 0 20 20">
-                                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                                    </svg>
-                                                @else
-                                                    <svg class="w-4 h-4 text-gray-300 fill-current" viewBox="0 0 20 20">
-                                                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z"/>
-                                                    </svg>
-                                                @endif
-                                            @endfor
-                                        </div>
-                                        <span class="ml-2 text-sm font-semibold text-gray-700">
-                                            {{ number_format($company->reviews_avg_rating, 1) }}
-                                        </span>
-                                        <span class="ml-1 text-sm text-gray-500">
-                                            ({{ $company->reviews_count ?? 0 }})
-                                        </span>
+
+                            <!-- Companies offering this service -->
+                            @if($service->companies->count() > 0)
+                                <div class="mb-4">
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        {{ $service->companies->count() }} företag erbjuder denna tjänst
+                                    </p>
+                                    <div class="flex flex-wrap gap-1">
+                                        @foreach($service->companies->take(3) as $company)
+                                            <span class="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                                {{ $company->company_name }}
+                                            </span>
+                                        @endforeach
+                                        @if($service->companies->count() > 3)
+                                            <span class="text-xs text-gray-500">
+                                                +{{ $service->companies->count() - 3 }} fler
+                                            </span>
+                                        @endif
                                     </div>
+                                </div>
+                            @endif
+
+                            <!-- Action Button -->
+                            <div class="flex gap-2">
+                                <a href="{{ route('public.city-service.landing', ['city' => $city->slug, 'service' => $service->slug]) }}" 
+                                   class="flex-1 bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                    Se detaljer
+                                </a>
+                                @if($service->forms->count() > 0)
+                                    <a href="{{ route('public.form', $service->forms->first()->token) }}" 
+                                       class="bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                                        Boka nu
+                                    </a>
                                 @endif
                             </div>
                         </div>
-                        
-                        <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-                            {{ $company->description ?? 'Professionell partner med hög kvalitet.' }}
-                        </p>
-                        
-                        @if($company->services && $company->services->count() > 0)
-                            <div class="flex flex-wrap gap-1 mb-4">
-                                @foreach($company->services->take(3) as $companyService)
-                                    <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full">
-                                        {{ $companyService->name }}
-                                    </span>
-                                @endforeach
-                                @if($company->services->count() > 3)
-                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full font-semibold">
-                                        +{{ $company->services->count() - 3 }}
-                                    </span>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Companies Section -->
+            @if($companies->count() > 0)
+                <div class="mb-12">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8">Företag i {{ $city->name }}</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($companies as $company)
+                            <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 p-6">
+                                <div class="flex items-start justify-between mb-4">
+                                    <div class="flex-1">
+                                        <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                                            <a href="{{ route('public.company.show', $company) }}" class="hover:text-blue-600">
+                                                {{ $company->company_name }}
+                                            </a>
+                                        </h3>
+                                        @if($company->reviews_avg_company_rating)
+                                            <div class="flex items-center mb-2">
+                                                <div class="flex text-yellow-400">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        @if($i <= floor($company->reviews_avg_company_rating))
+                                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                            </svg>
+                                                        @else
+                                                            <svg class="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                                            </svg>
+                                                        @endif
+                                                    @endfor
+                                                </div>
+                                                <span class="ml-2 text-sm text-gray-600">
+                                                    {{ number_format($company->reviews_avg_company_rating, 1) }} ({{ $company->reviews_count }} recensioner)
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                                
+                                @if($company->services->count() > 0)
+                                    <div class="mb-4">
+                                        <p class="text-sm text-gray-600 mb-2">
+                                            Erbjuder {{ $company->services->count() }} tjänster
+                                        </p>
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($company->services->take(3) as $service)
+                                                <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                                    {{ $service->name }}
+                                                </span>
+                                            @endforeach
+                                            @if($company->services->count() > 3)
+                                                <span class="text-xs text-gray-500">
+                                                    +{{ $company->services->count() - 3 }} fler
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 @endif
+
+                                <a href="{{ route('public.company.show', $company) }}" 
+                                   class="w-full bg-blue-600 text-white text-center py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                    Se företag
+                                </a>
                             </div>
-                        @endif
-                        
-                        <a href="{{ route('public.company.show', $company->id) }}" 
-                           class="block w-full text-center px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition">
-                            👁️ Visa Partner
-                        </a>
+                        @endforeach
                     </div>
                 </div>
-                @endforeach
-            </div>
+            @endif
 
-            <div class="text-center mt-8">
-                <a href="{{ route('public.companies', ['city' => $city->id]) }}" 
-                   class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-lg hover:from-blue-700 hover:to-indigo-700 transition shadow-lg">
-                    Se alla partners i {{ $city->name }} →
-                </a>
+        @else
+            <!-- No Services Available -->
+            <div class="text-center py-12">
+                <div class="max-w-md mx-auto">
+                    <svg class="mx-auto h-24 w-24 text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">
+                        Inga tjänster tillgängliga än
+                    </h3>
+                    <p class="text-gray-600 mb-6">
+                        Vi arbetar på att lägga till fler tjänster i {{ $city->name }}. 
+                        Kolla gärna igen senare eller titta på våra andra städer.
+                    </p>
+                    <a href="{{ route('public.cities') }}" 
+                       class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Se alla städer
+                    </a>
+                </div>
             </div>
-        </div>
         @endif
-
-        <!-- SEO Content Section -->
-        <div class="my-16 prose prose-lg max-w-none">
-            <div class="bg-white rounded-xl shadow-lg p-8">
-                <h2 class="text-2xl font-bold text-gray-900 mb-4">
-                    Om tjänster i {{ $city->name }}
-                </h2>
-                <p class="text-gray-700 leading-relaxed mb-4">
-                    {{ $city->name }} erbjuder ett brett utbud av professionella tjänster för både privatpersoner och företag. 
-                    Oavsett om du behöver hjälp med städning, hantverkstjänster, trädgårdsskötsel eller andra tjänster, 
-                    hittar du verifierade och pålitliga partners här.
-                </p>
-                <p class="text-gray-700 leading-relaxed mb-4">
-                    Alla våra samarbetspartners i {{ $city->name }} är noggrant utvalda och genomgår regelbunden kvalitetskontroll. 
-                    Vi erbjuder transparenta priser, snabb bokning och möjlighet till ROT-avdrag på kvalificerade tjänster.
-                </p>
-                <p class="text-gray-700 leading-relaxed">
-                    Genom vår plattform får du tillgång till {{ $stats['total_services'] }}+ tjänster från {{ $stats['total_companies'] }}+ 
-                    verifierade partners i {{ $city->name }}. Boka enkelt online och få bekräftelse direkt!
-                </p>
-            </div>
-        </div>
-
-        <!-- CTA Section -->
-        <div class="my-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-2xl p-12 text-center text-white">
-            <h2 class="text-3xl font-bold mb-4">
-                Redo att Boka en Tjänst i {{ $city->name }}?
-            </h2>
-            <p class="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-                Välj bland {{ $stats['total_services'] }}+ tjänster från verifierade partners. Snabb bokning, transparenta priser och kvalitetsgaranti.
-            </p>
-            <div class="flex flex-wrap justify-center gap-4">
-                <a href="{{ route('public.services', ['city' => $city->id]) }}" 
-                   class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition shadow-xl">
-                    🛠️ Bläddra Tjänster
-                </a>
-                <a href="{{ route('public.companies', ['city' => $city->id]) }}" 
-                   class="inline-flex items-center px-8 py-4 bg-blue-700 text-white font-bold rounded-lg hover:bg-blue-800 transition shadow-xl border-2 border-white/30">
-                    🏢 Se Partner
-                </a>
-            </div>
-        </div>
     </div>
 </div>
+
+@if($services->count() > 0 && $categories->count() > 1)
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const categoryFilters = document.querySelectorAll('.category-filter');
+    const serviceCards = document.querySelectorAll('.service-card');
+    
+    categoryFilters.forEach(filter => {
+        filter.addEventListener('click', function() {
+            const category = this.dataset.category;
+            
+            // Update active filter
+            categoryFilters.forEach(f => {
+                f.classList.remove('bg-blue-600', 'text-white');
+                f.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            this.classList.remove('bg-gray-200', 'text-gray-700');
+            this.classList.add('bg-blue-600', 'text-white');
+            
+            // Filter services
+            serviceCards.forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+    });
+});
+
+// FAQ Toggle Function
+function toggleFaq(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('svg');
+    
+    if (answer.classList.contains('hidden')) {
+        answer.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        answer.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
+@endif
 @endsection

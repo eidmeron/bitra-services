@@ -143,26 +143,26 @@
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Huvudinnehåll</label>
-                    <textarea name="custom_content" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                              placeholder="Sidans huvudinnehåll">{{ old('custom_content', $seoPage->custom_content) }}</textarea>
+                    <textarea name="content" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                              placeholder="Sidans huvudinnehåll">{{ old('content', $seoPage->content) }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Features (JSON)</label>
-                    <textarea name="features_json" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                              placeholder='[{"title": "Fördel", "description": "Beskrivning"}]'>{{ old('features_json', $seoPage->features_json ? json_encode($seoPage->features_json, JSON_PRETTY_PRINT) : '') }}</textarea>
+                    <textarea name="features" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                              placeholder='[{"title": "Fördel", "description": "Beskrivning"}]'>{{ old('features', $seoPage->features ? json_encode($seoPage->features, JSON_PRETTY_PRINT) : '') }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">FAQ (JSON)</label>
-                    <textarea name="faq_json" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                              placeholder='[{"question": "Fråga?", "answer": "Svar"}]'>{{ old('faq_json', $seoPage->faq_json ? json_encode($seoPage->faq_json, JSON_PRETTY_PRINT) : '') }}</textarea>
+                    <textarea name="faq" rows="4" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                              placeholder='[{"question": "Fråga?", "answer": "Svar"}]'>{{ old('faq', $seoPage->faq ? json_encode($seoPage->faq, JSON_PRETTY_PRINT) : '') }}</textarea>
                 </div>
 
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Schema Markup (JSON-LD)</label>
-                    <textarea name="schema_json" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-                              placeholder='{"@context": "https://schema.org", "@type": "Service"}'>{{ old('schema_json', $seoPage->schema_json ? json_encode($seoPage->schema_json, JSON_PRETTY_PRINT) : '') }}</textarea>
+                    <textarea name="schema_markup" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                              placeholder='{"@context": "https://schema.org", "@type": "Service"}'>{{ old('schema_markup', $seoPage->schema_markup ? json_encode($seoPage->schema_markup, JSON_PRETTY_PRINT) : '') }}</textarea>
                 </div>
             </div>
         </div>
@@ -173,7 +173,7 @@
             <div class="space-y-4">
                 <label class="flex items-center cursor-pointer">
                     <input type="checkbox" name="is_active" value="1" 
-                           {{ old('is_active', $seoPage->status === 'active') ? 'checked' : '' }} 
+                           {{ old('is_active', $seoPage->is_active) ? 'checked' : '' }} 
                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
                     <span class="ml-3 text-sm font-semibold text-gray-700">Aktivera sidan</span>
                 </label>

@@ -73,41 +73,50 @@ class CompanySeeder extends Seeder
         ];
 
         foreach ($companies as $companyData) {
-            // Create user for company
-            $user = User::create([
-                'type' => 'company',
-                'email' => $companyData['email'],
-                'password' => Hash::make('password'),
-                'status' => 'active',
-            ]);
+            // Create or update user for company (including soft-deleted)
+            $user = User::withTrashed()->updateOrCreate(
+                ['email' => $companyData['email']],
+                [
+                    'type' => 'company',
+                    'password' => Hash::make('password'),
+                    'status' => 'active',
+                    'deleted_at' => null, // Restore if soft-deleted
+                ]
+            );
 
-            // Create company
-            $company = Company::create([
-                'user_id' => $user->id,
-                'company_email' => $companyData['company_email'],
-                'company_number' => $companyData['company_number'],
-                'company_org_number' => $companyData['company_org_number'],
-                'site' => $companyData['site'],
-                'status' => $companyData['status'],
-                'review_average' => $companyData['status'] === 'active' ? fake()->randomFloat(2, 4.0, 5.0) : 0,
-                'review_count' => $companyData['status'] === 'active' ? fake()->numberBetween(5, 30) : 0,
-            ]);
+            // Create or update company
+            $company = Company::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'company_email' => $companyData['company_email'],
+                    'company_number' => $companyData['company_number'],
+                    'company_org_number' => $companyData['company_org_number'],
+                    'site' => $companyData['site'],
+                    'status' => $companyData['status'],
+                    'review_average' => $companyData['status'] === 'active' ? fake()->randomFloat(2, 4.0, 5.0) : 0,
+                    'review_count' => $companyData['status'] === 'active' ? fake()->numberBetween(5, 30) : 0,
+                ]
+            );
 
-            // Attach services
+            // Sync services
+            $serviceIds = [];
             foreach ($companyData['services'] as $serviceSlug) {
                 $service = Service::where('slug', $serviceSlug)->first();
                 if ($service) {
-                    $company->services()->attach($service->id);
+                    $serviceIds[] = $service->id;
                 }
             }
+            $company->services()->sync($serviceIds);
 
-            // Attach cities
+            // Sync cities
+            $cityIds = [];
             foreach ($companyData['cities'] as $cityName) {
                 $city = City::where('name', $cityName)->first();
                 if ($city) {
-                    $company->cities()->attach($city->id);
+                    $cityIds[] = $city->id;
                 }
             }
+            $company->cities()->sync($cityIds);
         }
 
         $this->command->info('Created ' . count($companies) . ' companies');

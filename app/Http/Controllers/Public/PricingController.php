@@ -157,35 +157,57 @@ final class PricingController extends Controller
     private function getServiceIncludes(Service $service): array
     {
         $defaultIncludes = [
+            'Noggrant utvalda och verifierade partners',
             'Professionell personal med erfarenhet',
             'Alla nödvändiga material och verktyg',
             'Försäkring och garanti',
-            'Gratis offert',
+            'Gratis offert utan förpliktelser',
             'Flexibla betalningsalternativ',
+            'Säker dokumentation av alla bokningar',
+            'Kundsupport via telefon och chat',
+            'Kvalitetsgaranti från Bitra',
         ];
 
-        // Service-specific includes
+        // Service-specific includes based on content.md
         $serviceIncludes = match($service->name) {
-            'Städning', 'Hemstädning' => [
+            'Hemstädning' => [
                 'Alla städmaterial inkluderade',
                 'Miljövänliga produkter',
                 'Städning av alla rum',
                 'Fönsterputsning',
                 'Städning av kök och badrum',
+                'ROT-avdrag 30%',
+                'Regelbundna rabatter för återkommande kunder',
             ],
-            'Hantverk', 'VVS', 'El' => [
-                'Licensierad personal',
+            'Flyttstädning' => [
+                'Städning enligt Folksams standard',
+                'Alla städmaterial inkluderade',
+                'Garanti på utfört arbete',
+                'Flexibla tider',
+                'Professionell personal',
+            ],
+            'VVS-tjänster' => [
+                'Licensierad VVS-tekniker',
                 'Alla verktyg och material',
                 'Garanti på utfört arbete',
+                'ROT-avdrag 30%',
                 'Professionell rådgivning',
                 'Snabb service',
             ],
-            'Flytt', 'Flytthjälp' => [
-                'Flyttkartonger och emballage',
-                'Transport och lastning',
-                'Försäkring av gods',
-                'Montering/demontering av möbler',
-                'Städning av gamla lägenheten',
+            'Målning' => [
+                'Licensierad målare',
+                'Högkvalitativa färger',
+                'Alla verktyg och material',
+                'ROT-avdrag 30%',
+                'Garanti på utfört arbete',
+                'Förberedelse av ytor',
+            ],
+            'Gräsklippning' => [
+                'Professionell trädgårdsutrustning',
+                'Miljövänliga metoder',
+                'ROT-avdrag 30%',
+                'Regelbunden service',
+                'Avfallshantering',
             ],
             default => $defaultIncludes,
         };
@@ -195,17 +217,51 @@ final class PricingController extends Controller
 
     private function getServiceExcludes(Service $service): array
     {
-        return [
+        $defaultExcludes = [
             'Specialutrustning som kräver extra kostnad',
             'Material som kräver särskild beställning',
             'Arbete som kräver bygglov',
             'Transport av farliga ämnen',
+            'Arbete utanför normal arbetstid (helger/kvällar)',
+            'Specialmaterial som inte ingår i standardpriset',
         ];
+
+        // Service-specific excludes
+        $serviceExcludes = match($service->name) {
+            'Hemstädning' => [
+                'Städning av utrymmen utanför lägenheten',
+                'Flyttstädning (separat tjänst)',
+                'Specialbehandling av mjukvaror',
+            ],
+            'Flyttstädning' => [
+                'Städning av nya lägenheten',
+                'Transport av gods',
+                'Montering/demontering av möbler',
+            ],
+            'VVS-tjänster' => [
+                'Arbete som kräver bygglov',
+                'Större renoveringar',
+                'Installation av nya system',
+            ],
+            'Målning' => [
+                'Reparation av skador på väggar',
+                'Tapetsering',
+                'Specialfärger som kräver beställning',
+            ],
+            'Gräsklippning' => [
+                'Trädfällning',
+                'Häckskärning',
+                'Plantering av nya växter',
+            ],
+            default => [],
+        };
+
+        return array_merge($defaultExcludes, $serviceExcludes);
     }
 
     private function getServiceAddOns(Service $service): array
     {
-        return [
+        $defaultAddOns = [
             [
                 'name' => 'Express service (samma dag)',
                 'price' => '+ 200 SEK',
@@ -222,6 +278,66 @@ final class PricingController extends Controller
                 'description' => 'Specialmaterial som inte ingår i standardpriset',
             ],
         ];
+
+        // Service-specific add-ons
+        $serviceAddOns = match($service->name) {
+            'Hemstädning' => [
+                [
+                    'name' => 'Fönsterputsning',
+                    'price' => '+ 150 SEK',
+                    'description' => 'Professionell fönsterputsning inkluderad',
+                ],
+                [
+                    'name' => 'Kylskåpsstädning',
+                    'price' => '+ 100 SEK',
+                    'description' => 'Djuptädning av kylskåp',
+                ],
+                [
+                    'name' => 'Ugnsrengöring',
+                    'price' => '+ 200 SEK',
+                    'description' => 'Professionell ugnsrengöring',
+                ],
+            ],
+            'VVS-tjänster' => [
+                [
+                    'name' => 'Nödservice',
+                    'price' => '+ 500 SEK',
+                    'description' => 'Akut service inom 2 timmar',
+                ],
+                [
+                    'name' => 'Garantiförlängning',
+                    'price' => '+ 200 SEK',
+                    'description' => 'Förlängd garanti till 2 år',
+                ],
+            ],
+            'Målning' => [
+                [
+                    'name' => 'Förberedelse av ytor',
+                    'price' => '+ 300 SEK',
+                    'description' => 'Spackling och slipning inkluderat',
+                ],
+                [
+                    'name' => 'Specialfärger',
+                    'price' => 'Kostnad + 20%',
+                    'description' => 'Beställning av specialfärger',
+                ],
+            ],
+            'Gräsklippning' => [
+                [
+                    'name' => 'Häckskärning',
+                    'price' => '+ 200 SEK',
+                    'description' => 'Professionell häckskärning',
+                ],
+                [
+                    'name' => 'Avfallshantering',
+                    'price' => '+ 100 SEK',
+                    'description' => 'Bortforsling av gräsavfall',
+                ],
+            ],
+            default => [],
+        };
+
+        return array_merge($defaultAddOns, $serviceAddOns);
     }
 
     private function getServiceFaqs(Service $service): array

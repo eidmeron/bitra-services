@@ -23,6 +23,7 @@ class Booking extends Model
         'service_id',
         'form_id',
         'city_id',
+        'slot_time_id',
         'customer_type',
         'org_number',
         'personnummer',
@@ -42,6 +43,10 @@ class Booking extends Model
         'tax_amount',
         'rot_deduction',
         'discount_amount',
+        'loyalty_points_used',
+        'loyalty_points_value',
+        'commission_amount',
+        'commission_rate',
         'final_price',
         'total_with_tax',
         'status',
@@ -61,6 +66,10 @@ class Booking extends Model
         'tax_amount' => 'decimal:2',
         'rot_deduction' => 'decimal:2',
         'discount_amount' => 'decimal:2',
+        'loyalty_points_used' => 'decimal:2',
+        'loyalty_points_value' => 'decimal:2',
+        'commission_amount' => 'decimal:2',
+        'commission_rate' => 'decimal:2',
         'final_price' => 'decimal:2',
         'total_with_tax' => 'decimal:2',
         'preferred_date' => 'datetime',
@@ -167,8 +176,18 @@ class Booking extends Model
         return $query->where('status', 'cancelled');
     }
 
-    public function payout(): HasOne
+    public function deposit(): HasOne
     {
-        return $this->hasOne(Payout::class);
+        return $this->hasOne(Deposit::class);
+    }
+
+    public function loyaltyPointTransactions(): HasMany
+    {
+        return $this->hasMany(LoyaltyPointTransaction::class);
+    }
+
+    public function slotTime(): BelongsTo
+    {
+        return $this->belongsTo(SlotTime::class);
     }
 }

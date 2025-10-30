@@ -571,11 +571,55 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize
     showStep(1);
     
+    // Handle server-side validation errors on page load
+    function handleServerValidationErrors() {
+        @if($errors->any())
+            // Find the first step with errors
+            let firstErrorStep = 1;
+            @foreach($errors->keys() as $field)
+                @if(in_array($field, ['company_name', 'org_number', 'company_email', 'company_phone', 'company_address', 'company_city', 'company_zip', 'company_website']))
+                    firstErrorStep = 1;
+                @elseif(in_array($field, ['services', 'cities', 'description']))
+                    firstErrorStep = 2;
+                @elseif(in_array($field, ['name', 'email', 'password', 'terms']))
+                    firstErrorStep = 3;
+                @endif
+            @endforeach
+            
+            // Show the step with errors
+            showStep(firstErrorStep);
+            
+            // Display server-side validation errors
+            @foreach($errors->all() as $error)
+                // Find the field name from the error message
+                @php
+                    $fieldName = '';
+                    foreach($errors->keys() as $key) {
+                        if(str_contains($error, $key)) {
+                            $fieldName = $key;
+                            break;
+                        }
+                    }
+                @endphp
+                @if($fieldName)
+                    showError('{{ $fieldName }}', '{{ $error }}');
+                @endif
+            @endforeach
+        @endif
+    }
+    
+    // Call on page load
+    handleServerValidationErrors();
+    
     // Validate current step before proceeding
-    function validateStep(step) {
+    async function validateStep(step) {
         const stepContent = document.querySelector(`.step-content[data-step="${step}"]`);
         if (!stepContent) return true;
         
+        // Clear previous error messages
+        clearErrorMessages();
+        
+        // Basic frontend validation
         const inputs = stepContent.querySelectorAll('input[required], textarea[required], select[required]');
         let isValid = true;
         
@@ -610,27 +654,98 @@ document.addEventListener('DOMContentLoaded', function() {
             const citiesChecked = stepContent.querySelectorAll('input[name="cities[]"]:checked');
             
             if (servicesChecked.length === 0) {
-                alert('Vänligen välj minst en tjänst.');
+                showError('services', 'Vänligen välj minst en tjänst.');
                 isValid = false;
             }
             if (citiesChecked.length === 0) {
-                alert('Vänligen välj minst en stad.');
+                showError('cities', 'Vänligen välj minst en stad.');
                 isValid = false;
             }
         }
         
-        if (!isValid && step !== 3) {
-            alert('Vänligen fyll i alla obligatoriska fält.');
+        if (!isValid) {
+            return false;
         }
         
-        return isValid;
+        // Server-side validation
+        try {
+            const formData = new FormData();
+            const allInputs = document.querySelectorAll('input, textarea, select');
+            
+            allInputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    if (input.checked) {
+                        formData.append(input.name, input.value);
+                    }
+                } else if (input.type === 'file') {
+                    if (input.files.length > 0) {
+                        formData.append(input.name, input.files[0]);
+                    }
+                } else {
+                    formData.append(input.name, input.value);
+                }
+            });
+            
+            formData.append('step', step);
+            formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+            
+            const response = await fetch('{{ route("company.register.validate-step") }}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                // Display server-side validation errors
+                Object.keys(result.errors).forEach(field => {
+                    showError(field, result.errors[field][0]);
+                });
+                return false;
+            }
+            
+            return true;
+        } catch (error) {
+            console.error('Validation error:', error);
+            return false;
+        }
+    }
+    
+    // Clear all error messages
+    function clearErrorMessages() {
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.border-red-500').forEach(el => el.classList.remove('border-red-500'));
+    }
+    
+    // Show error message for specific field
+    function showError(fieldName, message) {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.classList.add('border-red-500');
+            
+            // Remove existing error message
+            const existingError = field.parentNode.querySelector('.error-message');
+            if (existingError) {
+                existingError.remove();
+            }
+            
+            // Add new error message
+            const errorDiv = document.createElement('p');
+            errorDiv.className = 'error-message text-red-500 text-sm mt-1';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
     }
     
     // Update next button click handlers
     document.querySelectorAll('.next-step').forEach(btn => {
         btn.removeEventListener('click', function() {});
-        btn.addEventListener('click', function() {
-            if (validateStep(currentStep)) {
+        btn.addEventListener('click', async function() {
+            const isValid = await validateStep(currentStep);
+            if (isValid) {
                 if (currentStep < totalSteps) {
                     showStep(currentStep + 1);
                 }
@@ -645,13 +760,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const submitLoading = document.getElementById('submit-loading');
     
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
             
             // Validate all steps
             let allValid = true;
             for (let i = 1; i <= totalSteps; i++) {
-                if (!validateStep(i)) {
+                const isValid = await validateStep(i);
+                if (!isValid) {
                     allValid = false;
                     showStep(i);
                     break;

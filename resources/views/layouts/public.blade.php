@@ -194,9 +194,6 @@
         </div>
     </div>
                     
-                <a href="{{ route('public.companies') }}" class="text-gray-700 hover:text-blue-600 font-medium transition {{ request()->routeIs('public.companies') ? 'text-blue-600' : '' }}">
-                    Partner
-                </a>
                 <a href="{{ route('about') }}" class="text-gray-700 hover:text-blue-600 font-medium transition {{ request()->routeIs('about') ? 'text-blue-600' : '' }}">
                     Om oss
                 </a>
@@ -242,9 +239,6 @@
                 <a href="{{ route('public.pricing.index') }}" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 font-medium">
                     💰 Priser
                 </a>
-                <a href="{{ route('public.companies') }}" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 font-medium">
-                    Partner
-                </a>
                 <a href="{{ route('about') }}" class="block px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 font-medium">
                     Om oss
                 </a>
@@ -267,6 +261,53 @@
     <x-footer />
 
     @stack('scripts')
+    
+    <!-- Analytics Tracking -->
+    <script src="{{ asset('js/analytics.js') }}"></script>
+    
+    <!-- Google Analytics -->
+    @if(setting('google_analytics_id'))
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ setting('google_analytics_id') }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ setting('google_analytics_id') }}');
+    </script>
+    @endif
+    
+    <!-- Facebook Pixel -->
+    @if(setting('facebook_pixel_id'))
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '{{ setting('facebook_pixel_id') }}');
+        fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none"
+        src="https://www.facebook.com/tr?id={{ setting('facebook_pixel_id') }}&ev=PageView&noscript=1"
+    /></noscript>
+    @endif
+    
+    <!-- Hotjar -->
+    @if(setting('hotjar_id'))
+    <script>
+        (function(h,o,t,j,a,r){
+            h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+            h._hjSettings={hjid:{{ setting('hotjar_id') }},hjsv:6};
+            a=o.getElementsByTagName('head')[0];
+            r=o.createElement('script');r.async=1;
+            r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+            a.appendChild(r);
+        })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+    </script>
+    @endif
     
 </body>
 </html>

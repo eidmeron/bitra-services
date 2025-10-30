@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use App\Listeners\LinkGuestBookingsToUser;
+use App\Models\Booking;
+use App\Models\User;
+use App\Observers\BookingObserver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Event;
@@ -28,5 +31,9 @@ class AppServiceProvider extends ServiceProvider
             Login::class,
             Registered::class,
         ], LinkGuestBookingsToUser::class);
+        
+        // Register model observers
+        Booking::observe(BookingObserver::class);
+        User::observe(\App\Observers\UserObserver::class);
     }
 }

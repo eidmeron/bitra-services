@@ -197,66 +197,82 @@
                 <div class="border-t pt-4 mt-4" id="review">
                     <h4 class="font-semibold mb-3">⭐ Lämna recension</h4>
                     <div class="bg-green-50 border border-green-200 p-4 rounded mb-4">
-                        <p class="text-sm text-green-800">
-                            Tjänsten är slutförd! Dela din upplevelse med andra kunder.
+                        <p class="text-sm text-green-800 mb-3">
+                            Tjänsten är slutförd! Dela din upplevelse med både företaget och vår plattform.
                         </p>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">🏢</span>
+                                <span class="text-sm">Recensera företaget</span>
+                            </div>
+                            <div class="flex items-center">
+                                <span class="text-2xl mr-2">⭐</span>
+                                <span class="text-sm">Recensera Bitra</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <form method="POST" action="{{ route('user.bookings.review', $booking) }}" x-data="{ rating: 0 }">
-                        @csrf
-                        <div class="mb-4">
-                            <label class="form-label">Betyg *</label>
-                            <div class="flex space-x-2">
-                                @for($i = 1; $i <= 5; $i++)
-                                    <label class="cursor-pointer" @click="rating = {{ $i }}">
-                                        <input type="radio" name="rating" value="{{ $i }}" required class="hidden" x-model="rating">
-                                        <span 
-                                            class="text-4xl transition-colors duration-150"
-                                            :class="rating >= {{ $i }} ? 'text-yellow-400' : 'text-gray-300 hover:text-yellow-300'"
-                                        >★</span>
-                                    </label>
-                                @endfor
-                            </div>
-                            <p class="text-sm text-gray-500 mt-2">
-                                <span x-show="rating === 1">⭐ Dålig</span>
-                                <span x-show="rating === 2">⭐⭐ Mindre bra</span>
-                                <span x-show="rating === 3">⭐⭐⭐ Okej</span>
-                                <span x-show="rating === 4">⭐⭐⭐⭐ Bra</span>
-                                <span x-show="rating === 5">⭐⭐⭐⭐⭐ Utmärkt!</span>
-                            </p>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Din recension</label>
-                            <textarea name="review_text" rows="4" class="form-input" placeholder="Berätta om din upplevelse..."></textarea>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary">
-                            📝 Skicka recension
-                        </button>
-                    </form>
+                    <a href="{{ route('user.bookings.review', $booking) }}" 
+                       class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <span class="mr-2">📝</span>
+                        Lämna dina recensioner
+                    </a>
                 </div>
             @elseif($booking->review)
                 <div class="border-t pt-4 mt-4">
-                    <h4 class="font-semibold mb-3">Din recension</h4>
-                    <div class="bg-gray-50 p-4 rounded">
-                        <div class="text-center mb-2">
-                            {!! reviewStars($booking->review->rating) !!}
-                        </div>
-                        @if($booking->review->review_text)
-                            <p class="text-sm text-gray-700 italic text-center">"{{ $booking->review->review_text }}"</p>
-                        @endif
-                        <p class="text-xs text-gray-500 text-center mt-2">
-                            Status: 
-                            @if($booking->review->status === 'approved')
-                                <span class="text-green-600">Godkänd</span>
-                            @elseif($booking->review->status === 'pending')
-                                <span class="text-yellow-600">Väntar på godkännande</span>
-                            @else
-                                <span class="text-red-600">Avvisad</span>
+                    <h4 class="font-semibold mb-3">Dina recensioner</h4>
+                    
+                    <!-- Company Review -->
+                    @if($booking->review->hasCompanyReview())
+                        <div class="bg-blue-50 p-4 rounded mb-4">
+                            <div class="flex items-center mb-2">
+                                <span class="text-2xl mr-2">🏢</span>
+                                <h5 class="font-semibold text-gray-900">Företagsrecension</h5>
+                            </div>
+                            <div class="text-center mb-2">
+                                {!! reviewStars($booking->review->company_rating) !!}
+                            </div>
+                            @if($booking->review->company_review_text)
+                                <p class="text-sm text-gray-700 italic text-center">"{{ $booking->review->company_review_text }}"</p>
                             @endif
-                        </p>
-                    </div>
+                            <p class="text-xs text-gray-500 text-center mt-2">
+                                Status: 
+                                @if($booking->review->isCompanyReviewApproved())
+                                    <span class="text-green-600">Godkänd</span>
+                                @elseif($booking->review->company_status === 'pending')
+                                    <span class="text-yellow-600">Väntar på godkännande</span>
+                                @else
+                                    <span class="text-red-600">Avvisad</span>
+                                @endif
+                            </p>
+                        </div>
+                    @endif
+
+                    <!-- Bitra Review -->
+                    @if($booking->review->hasBitraReview())
+                        <div class="bg-purple-50 p-4 rounded">
+                            <div class="flex items-center mb-2">
+                                <span class="text-2xl mr-2">⭐</span>
+                                <h5 class="font-semibold text-gray-900">Bitra-recension</h5>
+                            </div>
+                            <div class="text-center mb-2">
+                                {!! reviewStars($booking->review->bitra_rating) !!}
+                            </div>
+                            @if($booking->review->bitra_review_text)
+                                <p class="text-sm text-gray-700 italic text-center">"{{ $booking->review->bitra_review_text }}"</p>
+                            @endif
+                            <p class="text-xs text-gray-500 text-center mt-2">
+                                Status: 
+                                @if($booking->review->isBitraReviewApproved())
+                                    <span class="text-green-600">Godkänd</span>
+                                @elseif($booking->review->bitra_status === 'pending')
+                                    <span class="text-yellow-600">Väntar på godkännande</span>
+                                @else
+                                    <span class="text-red-600">Avvisad</span>
+                                @endif
+                            </p>
+                        </div>
+                    @endif
                 </div>
             @endif
 
@@ -403,13 +419,20 @@
                         <span>-{{ number_format($booking->discount_amount, 2, ',', ' ') }} kr</span>
                     </div>
                 @endif
+                @php
+                    $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                    $totalWithVAT = $booking->final_price;
+                    $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                    $vatAmount = $totalWithVAT - $baseAmount;
+                @endphp
+                
                 <div class="flex justify-between">
-                    <span>Delsumma:</span>
-                    <span>{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                    <span>Delsumma (exkl. moms):</span>
+                    <span>{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 <div class="flex justify-between">
-                    <span>Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
-                    <span>{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                    <span>Moms ({{ number_format($taxRate, 2, ',', ' ') }}%):</span>
+                    <span>{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 @if($booking->total_extra_fees > 0)
                     <div class="flex justify-between text-blue-600">

@@ -43,7 +43,6 @@ final class SeoPage extends Model
         'sort_order' => 'integer',
     ];
 
-    // Relationships
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
@@ -64,117 +63,107 @@ final class SeoPage extends Model
         return $this->belongsTo(Zone::class);
     }
 
-    // Scopes
-    public function scopeActive($query)
+    /**
+     * Get SEO data for a specific page type and related models
+     */
+    public static function getSeoData(string $pageType, ?int $serviceId = null, ?int $categoryId = null, ?int $cityId = null, ?int $zoneId = null): ?self
     {
-        return $query->where('is_active', true);
-    }
+        $query = self::where('page_type', $pageType)
+            ->where('is_active', true);
 
-    public function scopeByType($query, string $type)
-    {
-        return $query->where('page_type', $type);
-    }
-
-    public function scopeCityService($query, int $cityId, int $serviceId)
-    {
-        return $query->where('page_type', 'city_service')
-            ->where('city_id', $cityId)
-            ->where('service_id', $serviceId);
-    }
-
-    // Helper Methods
-    public function getMetaTitleAttribute($value): string
-    {
-        if ($value) {
-            return $value;
+        if ($serviceId) {
+            $query->where('service_id', $serviceId);
+        }
+        if ($categoryId) {
+            $query->where('category_id', $categoryId);
+        }
+        if ($cityId) {
+            $query->where('city_id', $cityId);
+        }
+        if ($zoneId) {
+            $query->where('zone_id', $zoneId);
         }
 
-        // Auto-generate if not set
-        return $this->generateMetaTitle();
+        return $query->first();
     }
 
-    public function getMetaDescriptionAttribute($value): ?string
+    /**
+     * Get default SEO data for a page type
+     */
+    public static function getDefaultSeoData(string $pageType): ?self
     {
-        if ($value) {
-            return $value;
-        }
-
-        // Auto-generate if not set
-        return $this->generateMetaDescription();
+        return self::where('page_type', $pageType)
+            ->where('is_active', true)
+            ->whereNull('service_id')
+            ->whereNull('category_id')
+            ->whereNull('city_id')
+            ->whereNull('zone_id')
+            ->first();
     }
 
-    private function generateMetaTitle(): string
+    /**
+     * Generate dynamic meta title based on page data
+     */
+    public function getDynamicMetaTitle(): string
     {
-        $parts = [];
-
+        $title = $this->meta_title ?? '';
+        
         if ($this->service) {
-            $parts[] = $this->service->name;
+            $title = str_replace('{service}', $this->service->name, $title);
         }
-
-        if ($this->city) {
-            $parts[] = $this->city->name;
-        }
-
         if ($this->category) {
-            $parts[] = $this->category->name;
+            $title = str_replace('{category}', $this->category->name, $title);
         }
-
-        if (empty($parts)) {
-            return 'Bitra Tjänster - Sveriges bästa tjänsteplattform';
-        }
-
-        return implode(' ', $parts) . ' | Bitra Tjänster';
-    }
-
-    private function generateMetaDescription(): string
-    {
-        if ($this->page_type === 'city_service' && $this->city && $this->service) {
-            return "Boka {$this->service->name} i {$this->city->name}. Jämför priser från verifierade företag. Snabb service, transparenta priser och kvalitetsgaranti.";
-        }
-
-        if ($this->page_type === 'city' && $this->city) {
-            return "Hitta och boka professionella tjänster i {$this->city->name}. Sveriges största tjänsteplattform med verifierade företag och transparenta priser.";
-        }
-
-        if ($this->page_type === 'service' && $this->service) {
-            return "Boka {$this->service->name} från verifierade företag. Jämför priser, läs recensioner och få din offert direkt. Kvalitetsgaranti och snabb service.";
-        }
-
-        return 'Hitta och boka professionella tjänster från verifierade företag över hela Sverige. Transparenta priser, snabb service och kvalitetsgaranti.';
-    }
-
-    public function generateSchemaMarkup(): array
-    {
-        $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => 'Bitra Tjänster',
-                'url' => url('/'),
-            ],
-        ];
-
-        if ($this->service) {
-            $schema['name'] = $this->service->name;
-            $schema['description'] = $this->service->description;
-            
-            if ($this->service->base_price) {
-                $schema['offers'] = [
-                    '@type' => 'Offer',
-                    'priceCurrency' => 'SEK',
-                    'price' => $this->service->base_price,
-                ];
-            }
-        }
-
         if ($this->city) {
-            $schema['areaServed'] = [
-                '@type' => 'City',
-                'name' => $this->city->name,
-            ];
+            $title = str_replace('{city}', $this->city->name, $title);
+        }
+        if ($this->zone) {
+            $title = str_replace('{zone}', $this->zone->name, $title);
         }
 
-        return $schema;
+        return $title;
+    }
+
+    /**
+     * Generate dynamic meta description based on page data
+     */
+    public function getDynamicMetaDescription(): string
+    {
+        $description = $this->meta_description ?? '';
+        
+        if ($this->service) {
+            $description = str_replace('{service}', $this->service->name, $description);
+        }
+        if ($this->category) {
+            $description = str_replace('{category}', $this->category->name, $description);
+        }
+        if ($this->city) {
+            $description = str_replace('{city}', $this->city->name, $description);
+        }
+        if ($this->zone) {
+            $description = str_replace('{zone}', $this->zone->name, $description);
+        }
+
+        return $description;
+    }
+
+    /**
+     * Get page type options
+     */
+    public static function getPageTypes(): array
+    {
+        return [
+            'service' => 'Tjänst',
+            'category' => 'Kategori',
+            'city' => 'Stad',
+            'zone' => 'Zon',
+            'city_service' => 'Stad + Tjänst',
+            'category_service' => 'Kategori + Tjänst',
+            'homepage' => 'Startsida',
+            'about' => 'Om oss',
+            'contact' => 'Kontakt',
+            'pricing' => 'Priser',
+            'reviews' => 'Recensioner',
+        ];
     }
 }

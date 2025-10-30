@@ -112,6 +112,27 @@
                 </div>
             @endif
 
+            <!-- Preferred Date & Time -->
+            @if($booking->preferred_date || $booking->preferred_time)
+                <div class="border-t pt-4 mt-4">
+                    <h4 class="font-semibold mb-3">📅 Önskat datum & tid</h4>
+                    <div class="bg-yellow-50 border border-yellow-200 p-4 rounded space-y-2">
+                        @if($booking->preferred_date)
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Datum:</span>
+                                <span class="font-semibold">{{ \Carbon\Carbon::parse($booking->preferred_date)->format('Y-m-d') }}</span>
+                            </div>
+                        @endif
+                        @if($booking->preferred_time)
+                            <div class="flex justify-between">
+                                <span class="text-gray-700">Tid:</span>
+                                <span class="font-semibold">{{ $booking->preferred_time }}</span>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+
             <!-- Actions Based on Status -->
             @if($booking->status === 'assigned')
                 <div class="border-t pt-4 mt-4">
@@ -163,61 +184,13 @@
                 </div>
             @endif
 
-            <!-- Chat Section -->
+            <!-- Chat Section (Disabled) -->
             @if(in_array($booking->status, ['assigned', 'in_progress']))
-                <div class="border-t pt-4 mt-4" id="chat">
-                    <h4 class="font-semibold mb-3 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                        </svg>
-                        Chatta med {{ $booking->customer_name }}
-                    </h4>
-                    
-                    <div class="bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-lg p-6">
-                        <!-- Chat Messages -->
-                        <div class="bg-white rounded-lg p-4 mb-4 max-h-96 overflow-y-auto" id="chatMessages">
-                            @forelse($booking->chats()->orderBy('created_at', 'asc')->get() as $chat)
-                                <div class="mb-4 {{ $chat->sender_type === 'company' ? 'text-right' : 'text-left' }}">
-                                    <div class="inline-block max-w-xs lg:max-w-md">
-                                        <div class="text-xs text-gray-500 mb-1">
-                                            {{ $chat->sender_type === 'company' ? 'Du' : $booking->customer_name }}
-                                            <span class="ml-1">{{ $chat->created_at->diffForHumans() }}</span>
-                                        </div>
-                                        <div class="rounded-lg px-4 py-2 {{ $chat->sender_type === 'company' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-900' }}">
-                                            {{ $chat->message }}
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center py-8 text-gray-500">
-                                    <svg class="w-16 h-16 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-                                    </svg>
-                                    <p class="text-sm">Inga meddelanden ännu. Starta konversationen!</p>
-                                </div>
-                            @endforelse
-                        </div>
-
-                        <!-- Send Message Form -->
-                        <form method="POST" action="{{ route('company.bookings.chat.send', $booking) }}" class="flex space-x-2">
-                            @csrf
-                            <input 
-                                type="text" 
-                                name="message" 
-                                class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500" 
-                                placeholder="Skriv ditt meddelande..."
-                                required
-                            >
-                            <button 
-                                type="submit" 
-                                class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition flex items-center"
-                            >
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                                </svg>
-                                Skicka
-                            </button>
-                        </form>
+                <div class="border-t pt-4 mt-4">
+                    <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
+                        <div class="text-4xl mb-3">💬</div>
+                        <h4 class="font-semibold text-gray-700 mb-2">Chattfunktion (Inaktiverad)</h4>
+                        <p class="text-sm text-gray-500">Chattfunktionen är för närvarande inaktiverad. Kontakta kunden via telefon eller e-post.</p>
                     </div>
                 </div>
             @endif
@@ -230,13 +203,20 @@
         <div class="card bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
             <h4 class="font-semibold mb-4">💰 Pris</h4>
             <div class="space-y-2 text-sm">
+                @php
+                    $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                    $totalWithVAT = $booking->final_price;
+                    $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                    $vatAmount = $totalWithVAT - $baseAmount;
+                @endphp
+                
                 <div class="flex justify-between">
-                    <span>Delsumma:</span>
-                    <span>{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                    <span>Delsumma (exkl. moms):</span>
+                    <span>{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 <div class="flex justify-between">
-                    <span>Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
-                    <span>{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                    <span>Moms ({{ number_format($taxRate, 2, ',', ' ') }}%):</span>
+                    <span>{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
                 </div>
                 @if($booking->rot_deduction > 0)
                     <div class="flex justify-between text-green-600">
@@ -289,15 +269,53 @@
             </div>
         </div>
 
-        <!-- Review -->
+        <!-- Reviews -->
         @if($booking->review)
-            <div class="card bg-yellow-50 border border-yellow-200">
-                <h4 class="font-semibold mb-3">⭐ Kundrecension</h4>
-                <div class="text-center mb-2">
-                    {!! reviewStars($booking->review->rating) !!}
-                </div>
-                @if($booking->review->review_text)
-                    <p class="text-sm text-gray-700 italic">"{{ $booking->review->review_text }}"</p>
+            <div class="space-y-4">
+                <!-- Company Review -->
+                @if($booking->review->hasCompanyReview())
+                    <div class="card bg-blue-50 border border-blue-200">
+                        <h4 class="font-semibold mb-3">🏢 Företagsrecension</h4>
+                        <div class="text-center mb-2">
+                            {!! reviewStars($booking->review->company_rating) !!}
+                        </div>
+                        @if($booking->review->company_review_text)
+                            <p class="text-sm text-gray-700 italic">"{{ $booking->review->company_review_text }}"</p>
+                        @endif
+                        <div class="text-xs text-gray-500 mt-2">
+                            Status: 
+                            @if($booking->review->isCompanyReviewApproved())
+                                <span class="text-green-600">✓ Godkänd</span>
+                            @elseif($booking->review->company_status === 'pending')
+                                <span class="text-yellow-600">⏳ Väntande</span>
+                            @else
+                                <span class="text-red-600">✗ Avvisad</span>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Bitra Review -->
+                @if($booking->review->hasBitraReview())
+                    <div class="card bg-purple-50 border border-purple-200">
+                        <h4 class="font-semibold mb-3">⭐ Bitra-recension</h4>
+                        <div class="text-center mb-2">
+                            {!! reviewStars($booking->review->bitra_rating) !!}
+                        </div>
+                        @if($booking->review->bitra_review_text)
+                            <p class="text-sm text-gray-700 italic">"{{ $booking->review->bitra_review_text }}"</p>
+                        @endif
+                        <div class="text-xs text-gray-500 mt-2">
+                            Status: 
+                            @if($booking->review->isBitraReviewApproved())
+                                <span class="text-green-600">✓ Godkänd</span>
+                            @elseif($booking->review->bitra_status === 'pending')
+                                <span class="text-yellow-600">⏳ Väntande</span>
+                            @else
+                                <span class="text-red-600">✗ Avvisad</span>
+                            @endif
+                        </div>
+                    </div>
                 @endif
             </div>
         @endif
@@ -427,84 +445,7 @@ function handleReject(event) {
     return false;
 }
 
-@if(in_array($booking->status, ['assigned', 'in_progress']))
-// Chat Auto-Refresh and Sound Notification
-let lastMessageCount = {{ $booking->chats()->count() }};
-let chatContainer = document.getElementById('chatMessages');
+// Chat functionality disabled
 
-// Play notification sound
-function playNotificationSound() {
-    // Create a simple notification beep using Web Audio API
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = 800; // Frequency in Hz
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.5);
-}
-
-// Check for new messages every 10 seconds
-setInterval(function() {
-    fetch(window.location.href, {
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => response.text())
-    .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const newChatContainer = doc.getElementById('chatMessages');
-        
-        if (newChatContainer) {
-            const currentMessageCount = newChatContainer.querySelectorAll('.mb-4').length;
-            
-            if (currentMessageCount > lastMessageCount) {
-                // New message received
-                chatContainer.innerHTML = newChatContainer.innerHTML;
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                
-                // Play notification sound
-                playNotificationSound();
-                
-                // Show browser notification
-                if ("Notification" in window && Notification.permission === "granted") {
-                    new Notification("💬 Nytt meddelande", {
-                        body: "Du har fått ett nytt meddelande från kunden",
-                        icon: "/favicon.ico"
-                    });
-                }
-                
-                lastMessageCount = currentMessageCount;
-            }
-        }
-    })
-    .catch(error => console.error('Error checking for new messages:', error));
-}, 10000); // Check every 10 seconds
-
-// Request notification permission on page load
-if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-}
-
-// Auto-scroll to bottom of chat on page load
-if (chatContainer) {
-    chatContainer.scrollTop = chatContainer.scrollHeight;
-}
-
-// Auto-scroll to chat section if hash is present
-if (window.location.hash === '#chat') {
-    document.getElementById('chat')?.scrollIntoView({ behavior: 'smooth' });
-}
-@endif
 </script>
 @endsection

@@ -16,11 +16,30 @@ class Zone extends Model
         'name',
         'slug',
         'description',
+        'intro_paragraph',
+        'features_benefits',
+        'process_steps',
+        'faq_items',
+        'testimonials',
+        'cta_text',
+        'cta_button_text',
+        'cta_button_url',
+        'meta_keywords',
+        'og_title',
+        'og_description',
+        'og_image',
+        'twitter_title',
+        'twitter_description',
+        'twitter_image',
         'area_map_selection',
         'status',
     ];
 
     protected $casts = [
+        'features_benefits' => 'array',
+        'process_steps' => 'array',
+        'faq_items' => 'array',
+        'testimonials' => 'array',
         'area_map_selection' => 'array',
     ];
 

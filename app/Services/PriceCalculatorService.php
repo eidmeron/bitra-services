@@ -12,7 +12,8 @@ class PriceCalculatorService
 {
     /**
      * Calculate total price based on formula:
-     * Total = ((Base + Variables) × Subscription_Multiplier × City_Multiplier) - ROT - Discount
+     * Total = ((Base + Variables) × Subscription_Multiplier × City_Multiplier) - ROT - Discount + Extra Fees
+     * VAT is calculated on the final amount after all deductions and additions
      */
     public function calculate(array $data): array
     {
@@ -27,11 +28,21 @@ class PriceCalculatorService
         $subscriptionMultiplier = $this->getSubscriptionMultiplier($service, $data);
         
         $cityMultiplier = $city->city_multiplier;
+        
+        // Get slot time price multiplier (if applicable)
+        $slotTimeMultiplier = 1.00;
+        if (isset($data['slot_time_id']) && $data['slot_time_id']) {
+            $slotTime = \App\Models\SlotTime::find($data['slot_time_id']);
+            if ($slotTime && $slotTime->price_multiplier) {
+                $slotTimeMultiplier = $slotTime->price_multiplier;
+            }
+        }
 
-        // Calculate subtotal: (Base + Variables) × Subscription × City
+        // Calculate subtotal: (Base + Variables) × Subscription × City × Slot Time
         $beforeMultipliers = $basePrice + $variableAdditions;
         $afterSubscription = $beforeMultipliers * $subscriptionMultiplier;
-        $subtotal = $afterSubscription * $cityMultiplier;
+        $afterCity = $afterSubscription * $cityMultiplier;
+        $subtotal = $afterCity * $slotTimeMultiplier;
 
         // ROT deduction (applied to base + variables, before multipliers)
         $rotDeduction = 0;
@@ -46,26 +57,21 @@ class PriceCalculatorService
         }
 
         // Loyalty Points Discount
-        $loyaltyPointsDiscount = 0;
-        $loyaltyPointsUsed = 0;
-        if (!empty($data['loyalty_points_to_use']) && !empty($data['user_id'])) {
-            $loyaltyPointsUsed = $this->applyLoyaltyPoints(
-                (int) $data['user_id'],
-                (float) $data['loyalty_points_to_use'],
-                $subtotal - $rotDeduction - $discountAmount
-            );
-            $pointValue = (float) \App\Models\SiteSetting::get('loyalty_points_value', 1);
-            $loyaltyPointsDiscount = $loyaltyPointsUsed * $pointValue;
-        }
+        $loyaltyPointsUsed = (float) ($data['loyalty_points_used'] ?? 0);
+        $loyaltyPointsDiscount = $loyaltyPointsUsed; // 1 point = 1 SEK
 
-        // Swedish VAT calculation: total + (total × moms%) = Totalt (inkl. moms)
-        // VAT is calculated on the subtotal before deductions
-        $taxRate = (float) ($service->tax_rate ?? 25.00);
-        $taxAmount = max(0, $subtotal * ($taxRate / 100));
+        // Apply all deductions first (ROT, discount, loyalty points)
+        $subtotalAfterDeductions = $subtotal - $rotDeduction - $discountAmount - $loyaltyPointsDiscount;
         
-        // Apply deductions after VAT calculation
-        $finalBeforeDeductions = $subtotal + $taxAmount;
-        $finalPrice = $finalBeforeDeductions - $rotDeduction - $discountAmount - $loyaltyPointsDiscount;
+        // Swedish VAT calculation: Total includes VAT, so we need to extract VAT from total
+        $taxRate = (float) ($service->tax_rate ?? 25.00);
+        
+        // If subtotal after deductions is the final amount that should include VAT:
+        // VAT = Total / (1 + VAT_rate) * VAT_rate
+        // Base amount = Total / (1 + VAT_rate)
+        $finalPrice = $subtotalAfterDeductions; // This is the total that includes VAT
+        $baseAmount = $finalPrice / (1 + ($taxRate / 100)); // Extract base amount
+        $taxAmount = $finalPrice - $baseAmount; // Calculate VAT amount
 
         return [
             'base_price' => (float) $basePrice,
@@ -73,12 +79,15 @@ class PriceCalculatorService
             'subscription_multiplier' => (float) $subscriptionMultiplier,
             'subscription_type' => $data['subscription_frequency'] ?? null,
             'city_multiplier' => (float) $cityMultiplier,
+            'slot_time_multiplier' => (float) $slotTimeMultiplier,
             'subtotal' => $subtotal,
+            'subtotal_after_deductions' => $subtotalAfterDeductions,
             'tax_rate' => $taxRate,
             'tax_amount' => $taxAmount,
             'rot_deduction' => $rotDeduction,
             'discount_amount' => $discountAmount,
             'loyalty_points_used' => $loyaltyPointsUsed,
+            'loyalty_points_value' => $loyaltyPointsUsed, // Value in SEK
             'loyalty_points_discount' => $loyaltyPointsDiscount,
             'final_price' => max(0, $finalPrice), // Never negative
             'breakdown' => $this->getBreakdown($data['form_data'] ?? [], $formId),

@@ -20,11 +20,20 @@ final class SearchController extends Controller
         $selectedService = $request->input('service') ? (int) $request->input('service') : null;
         $selectedCity = $request->input('city') ? (int) $request->input('city') : null;
         $selectedCategory = $request->input('category') ? (int) $request->input('category') : null;
+        $searchQuery = $request->input('q', '');
         
         // Get all options for filters
         $allServices = Service::active()->orderBy('name')->get();
         $allCities = City::orderBy('name')->get();
         $allCategories = Category::where('status', 'active')->orderBy('name')->get();
+        
+        // If we have a search query, try to parse it for intelligent matching
+        if ($searchQuery && !$selectedService && !$selectedCity && !$selectedCategory) {
+            $parsedResults = $this->parseSearchQuery($searchQuery);
+            $selectedService = $parsedResults['service_id'];
+            $selectedCity = $parsedResults['city_id'];
+            $selectedCategory = $parsedResults['category_id'];
+        }
         
         // Get filtered services based on selection order: City -> Category -> Service
         $services = $this->getFilteredServices($selectedCity, $selectedCategory, $selectedService);
@@ -54,6 +63,7 @@ final class SearchController extends Controller
             'selectedService',
             'selectedCity',
             'selectedCategory',
+            'searchQuery',
             'city',
             'category',
             'service',
@@ -130,9 +140,9 @@ final class SearchController extends Controller
         
         return $query
             ->with(['cities', 'services', 'user'])
-            ->withAvg('reviews', 'rating')
+            ->withAvg('reviews', 'company_rating')
             ->withCount('reviews')
-            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_avg_company_rating')
             ->get();
     }
     
@@ -172,5 +182,46 @@ final class SearchController extends Controller
         }
         
         return $baseDescription . ' Jämför priser och boka enkelt online.';
+    }
+    
+    private function parseSearchQuery(string $query): array
+    {
+        $query = strtolower(trim($query));
+        $serviceId = null;
+        $cityId = null;
+        $categoryId = null;
+        
+        // Try to find city matches
+        $cities = City::where('status', 'active')->get();
+        foreach ($cities as $city) {
+            if (strpos($query, strtolower($city->name)) !== false) {
+                $cityId = $city->id;
+                break;
+            }
+        }
+        
+        // Try to find service matches
+        $services = Service::where('status', 'active')->get();
+        foreach ($services as $service) {
+            if (strpos($query, strtolower($service->name)) !== false) {
+                $serviceId = $service->id;
+                break;
+            }
+        }
+        
+        // Try to find category matches
+        $categories = Category::where('status', 'active')->get();
+        foreach ($categories as $category) {
+            if (strpos($query, strtolower($category->name)) !== false) {
+                $categoryId = $category->id;
+                break;
+            }
+        }
+        
+        return [
+            'service_id' => $serviceId,
+            'city_id' => $cityId,
+            'category_id' => $categoryId
+        ];
     }
 }

@@ -20,15 +20,17 @@ class FormSeeder extends Seeder
         // Create form for Hemstädning
         $hemstadning = Service::where('slug', 'hemstadning')->first();
         if ($hemstadning) {
-            $form = Form::create([
-                'service_id' => $hemstadning->id,
-                'form_name' => 'Hemstädning - Bokningsformulär',
-                'form_slug' => 'hemstadning-bokning',
-                'form_schema' => [],
-                'success_message' => 'Tack för din bokning! Vi återkommer inom 24 timmar med bekräftelse.',
-                'redirect_after_submit' => false,
-                'status' => 'active',
-            ]);
+            $form = Form::updateOrCreate(
+                ['form_slug' => 'hemstadning-bokning'],
+                [
+                    'service_id' => $hemstadning->id,
+                    'form_name' => 'Hemstädning - Bokningsformulär',
+                    'form_schema' => [],
+                    'success_message' => 'Tack för din bokning! Vi återkommer inom 24 timmar med bekräftelse.',
+                    'redirect_after_submit' => false,
+                    'status' => 'active',
+                ]
+            );
 
             // Add fields
             FormField::create([
@@ -135,15 +137,17 @@ class FormSeeder extends Seeder
         // Create form for Gräsklippning
         $grasklippning = Service::where('slug', 'grasklippning')->first();
         if ($grasklippning) {
-            $form = Form::create([
-                'service_id' => $grasklippning->id,
-                'form_name' => 'Gräsklippning - Bokningsformulär',
-                'form_slug' => 'grasklippning-bokning',
-                'form_schema' => [],
-                'success_message' => 'Tack för din bokning! Din trädgård kommer snart att se fantastisk ut.',
-                'redirect_after_submit' => false,
-                'status' => 'active',
-            ]);
+            $form = Form::updateOrCreate(
+                ['form_slug' => 'grasklippning-bokning'],
+                [
+                    'service_id' => $grasklippning->id,
+                    'form_name' => 'Gräsklippning - Bokningsformulär',
+                    'form_schema' => [],
+                    'success_message' => 'Tack för din bokning! Din trädgård kommer snart att se fantastisk ut.',
+                    'redirect_after_submit' => false,
+                    'status' => 'active',
+                ]
+            );
 
             FormField::create([
                 'form_id' => $form->id,

@@ -17,6 +17,66 @@
     </div>
 </div>
 
+<!-- Maintenance Section -->
+<div class="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-orange-500">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <span class="mr-2">🧹</span>
+                Underhåll & Rensning
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">Håll systemet rent och optimerat</p>
+        </div>
+        <div class="flex space-x-3">
+            <form method="POST" action="{{ route('admin.dashboard.cleanup-slots') }}" class="inline">
+                @csrf
+                <button type="submit" 
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                        onclick="return confirm('Är du säker på att du vill rensa alla gamla tidsluckor? Detta kan inte ångras.')">
+                    🗑️ Rensa gamla tidsluckor
+                </button>
+            </form>
+        </div>
+    </div>
+    <div class="mt-4 text-sm text-gray-500">
+        <p>• Rensar automatiskt tidsluckor för passerade dagar</p>
+        <p>• Körs dagligen kl 02:00 via schemaläggning</p>
+        <p>• Håller databasen ren och optimerad</p>
+    </div>
+</div>
+
+<!-- Deposit & Commission Management -->
+<div class="bg-white rounded-xl shadow-lg p-6 mb-8 border-l-4 border-blue-500">
+    <div class="flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+                <span class="mr-2">💰</span>
+                Deposits & Kommissioner
+            </h3>
+            <p class="text-sm text-gray-600 mt-1">Hantera företagsbetalningar och fakturor</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{{ route('admin.deposits.index') }}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                📊 Visa Deposits
+            </a>
+            <a href="{{ route('admin.deposits.weekly-reports') }}" 
+               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                📈 Veckorapporter
+            </a>
+            <a href="{{ route('admin.invoices.index') }}" 
+               class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                🧾 Fakturor
+            </a>
+        </div>
+    </div>
+    <div class="mt-4 text-sm text-gray-500">
+        <p>• Automatiska veckorapporter genereras måndagar kl 09:00</p>
+        <p>• Svenska fakturor med bankgiro och 30 dagars betalningstid</p>
+        <p>• Lojalitetspoäng minskar företagens kommission</p>
+    </div>
+</div>
+
 <!-- Main Stats Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
     <!-- Total Bookings -->
@@ -233,21 +293,34 @@
             </div>
             <div class="h-64 flex items-end justify-between space-x-2">
                 @if(count($revenueData) > 0)
-                    @foreach($revenueData as $data)
-                        @php
-                            $maxRevenue = collect($revenueData)->max('revenue');
-                            $height = $maxRevenue > 0 ? ($data['revenue'] / $maxRevenue) * 100 : 0;
-                        @endphp
-                        <div class="flex-1 flex flex-col items-center">
-                            <div class="w-full bg-gradient-to-t from-blue-600 to-purple-600 rounded-t-lg hover:from-blue-700 hover:to-purple-700 transition-all relative group" 
-                                 style="height: {{ $height }}%">
-                                <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                    {{ number_format($data['revenue'], 0, ',', ' ') }} kr
+                    @php
+                        $maxRevenue = collect($revenueData)->max('revenue');
+                        $hasData = $maxRevenue > 0;
+                    @endphp
+                    @if($hasData)
+                        @foreach($revenueData as $data)
+                            @php
+                                $height = ($data['revenue'] / $maxRevenue) * 100;
+                            @endphp
+                            <div class="flex-1 flex flex-col items-center">
+                                <div class="w-full bg-gradient-to-t from-blue-600 to-purple-600 rounded-t-lg hover:from-blue-700 hover:to-purple-700 transition-all relative group" 
+                                     style="height: {{ max($height, 5) }}%">
+                                    <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                        {{ number_format($data['revenue'], 0, ',', ' ') }} kr
+                                    </div>
                                 </div>
+                                <div class="text-sm text-gray-600 mt-2 font-medium">{{ $data['period'] }}</div>
                             </div>
-                            <div class="text-sm text-gray-600 mt-2 font-medium">{{ $data['period'] }}</div>
+                        @endforeach
+                    @else
+                        <div class="w-full h-full flex items-center justify-center">
+                            <div class="text-center text-gray-500">
+                                <div class="text-4xl mb-2">📊</div>
+                                <p class="text-sm">Ingen omsättningsdata ännu</p>
+                                <p class="text-xs text-gray-400 mt-1">Data kommer att visas när bokningar slutförs</p>
+                            </div>
                         </div>
-                    @endforeach
+                    @endif
                 @else
                     <div class="w-full h-full flex items-center justify-center">
                         <div class="text-center text-gray-500">

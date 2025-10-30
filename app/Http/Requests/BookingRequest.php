@@ -46,6 +46,10 @@ class BookingRequest extends FormRequest
             // Company selection
             'company_id' => 'nullable|exists:companies,id',
             'auto_select_company' => 'nullable|in:0,1',
+            
+            // Loyalty points
+            'loyalty_points_used' => 'nullable|numeric|min:0',
+            'use_loyalty_points' => 'nullable|boolean',
         ];
     }
     
@@ -62,6 +66,21 @@ class BookingRequest extends FormRequest
         // Convert apply_rot to boolean if it's a string
         if ($this->has('apply_rot') && is_string($this->apply_rot)) {
             $this->merge(['apply_rot' => filter_var($this->apply_rot, FILTER_VALIDATE_BOOLEAN)]);
+        }
+        
+        // Handle loyalty points fields for guests
+        if (!$this->has('use_loyalty_points') || $this->input('use_loyalty_points') === null) {
+            $this->merge(['use_loyalty_points' => false]);
+        } else {
+            // Convert to boolean if it's a string
+            if (is_string($this->input('use_loyalty_points'))) {
+                $this->merge(['use_loyalty_points' => filter_var($this->input('use_loyalty_points'), FILTER_VALIDATE_BOOLEAN)]);
+            }
+        }
+        
+        // Ensure loyalty_points_used is set to 0 if not provided or if use_loyalty_points is false
+        if (!$this->has('loyalty_points_used') || $this->input('loyalty_points_used') === null || !$this->input('use_loyalty_points')) {
+            $this->merge(['loyalty_points_used' => 0]);
         }
         
         // Map name and email to customer_name and customer_email

@@ -99,7 +99,14 @@ class ServiceSeeder extends Seeder
         }
 
         foreach ($services as $service) {
-            Service::create($service);
+            $serviceModel = Service::updateOrCreate(
+                ['slug' => $service['slug']],
+                $service
+            );
+            
+            // Link service to all cities (services are available in all cities)
+            $allCities = \App\Models\City::all();
+            $serviceModel->cities()->sync($allCities->pluck('id')->toArray());
         }
     }
 }

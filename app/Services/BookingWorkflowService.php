@@ -85,7 +85,7 @@ class BookingWorkflowService
                 'rot_deduction' => $pricing['rot_deduction'],
                 'discount_amount' => $pricing['discount_amount'],
                 'loyalty_points_used' => $pricing['loyalty_points_used'] ?? 0,
-                'loyalty_points_discount' => $pricing['loyalty_points_discount'] ?? 0,
+                'loyalty_points_value' => $pricing['loyalty_points_value'] ?? 0,
                 'final_price' => $pricing['final_price'],
                 'total_with_tax' => $pricing['final_price'],
                 'status' => $status,
@@ -121,9 +121,9 @@ class BookingWorkflowService
             ->whereHas('cities', function ($query) use ($cityId) {
                 $query->where('cities.id', $cityId);
             })
-            ->withAvg('reviews', 'rating')
+            ->withAvg('reviews', 'company_rating')
             ->withCount('reviews')
-            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_avg_company_rating')
             ->orderByDesc('reviews_count')
             ->orderBy('created_at')
             ->first();

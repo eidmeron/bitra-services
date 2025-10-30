@@ -68,18 +68,56 @@
                     <span class="text-xl mr-3">🛠️</span>
                     <span class="font-medium">Tjänster</span>
                 </a>
+                <a href="{{ route('admin.slot-times.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.slot-times.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                    <span class="text-xl mr-3">⏰</span>
+                    <span class="font-medium">Tidsluckor</span>
+                </a>
                 <!-- Payments Section -->
                 <div class="mt-6 mb-2 px-4">
                     <p class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Betalningar</p>
                 </div>
-                <a href="{{ route('admin.payouts.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.payouts.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
-                    <span class="text-xl mr-3">💸</span>
-                    <span class="font-medium">Utbetalningar</span>
+                <a href="{{ route('admin.deposits.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.deposits.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                    <span class="text-xl mr-3">💰</span>
+                    <span class="font-medium">Deposits</span>
                 </a>
-                <a href="{{ route('admin.payouts.weekly-reports') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.payouts.weekly-reports') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
-                    <span class="text-xl mr-3">📅</span>
+                <a href="{{ route('admin.deposits.weekly-reports') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.deposits.weekly-reports') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                    <span class="text-xl mr-3">📈</span>
                     <span class="font-medium">Veckorapporter</span>
                 </a>
+                <a href="{{ route('admin.invoices.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.invoices.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                    <span class="text-xl mr-3">🧾</span>
+                    <span class="font-medium">Fakturor</span>
+                </a>
+        <a href="{{ route('admin.loyalty-points.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.loyalty-points.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+            <span class="text-xl mr-3">⭐</span>
+            <span class="font-medium">Lojalitetspoäng</span>
+        </a>
+        
+        <!-- Analytics Section -->
+        <div class="mt-6 mb-2 px-4">
+            <p class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Analytics</p>
+        </div>
+        <a href="{{ route('admin.analytics.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.analytics.index') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+            <span class="text-xl mr-3">📊</span>
+            <span class="font-medium">Analytics</span>
+        </a>
+        <a href="{{ route('admin.analytics.settings') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.analytics.settings') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+            <span class="text-xl mr-3">⚙️</span>
+            <span class="font-medium">Analytics Inställningar</span>
+        </a>
+        
+        <!-- Settings Section -->
+        <div class="mt-6 mb-2 px-4">
+            <p class="text-xs font-semibold text-blue-300 uppercase tracking-wider">Inställningar</p>
+        </div>
+        <a href="{{ route('admin.notification-settings.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.notification-settings.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+            <span class="text-xl mr-3">🔔</span>
+            <span class="font-medium">Notifieringar</span>
+        </a>
+        <a href="{{ route('admin.email-templates.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.email-templates.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+            <span class="text-xl mr-3">📧</span>
+            <span class="font-medium">E-postmallar</span>
+        </a>
                 <a href="{{ route('admin.email-marketing.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.email-marketing.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
                     <span class="text-xl mr-3">📧</span>
                     <span class="font-medium">Email Marketing</span>
@@ -119,19 +157,16 @@
                     <span class="font-medium">Kontaktmeddelanden</span>
                 </a>
 
-                <a href="{{ route('admin.platform-reviews.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.platform-reviews.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                <a href="{{ route('admin.reviews.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.reviews.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
                     <span class="text-xl mr-3">⭐</span>
-                    <span class="font-medium">Plattformsrecensioner</span>
-                    @if($counts['new_platform_reviews'] > 0 || $counts['pending_platform_reviews'] > 0)
-                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 notification-badge">{{ $counts['new_platform_reviews'] + $counts['pending_platform_reviews'] }}</span>
+                    <span class="font-medium">Recensioner</span>
+                    @if(($counts['new_platform_reviews'] ?? 0) > 0 || ($counts['pending_platform_reviews'] ?? 0) > 0 || ($counts['new_company_reviews'] ?? 0) > 0 || ($counts['pending_company_reviews'] ?? 0) > 0)
+                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 notification-badge">{{ ($counts['new_platform_reviews'] ?? 0) + ($counts['pending_platform_reviews'] ?? 0) + ($counts['new_company_reviews'] ?? 0) + ($counts['pending_company_reviews'] ?? 0) }}</span>
                     @endif
                 </a>
-                <a href="{{ route('admin.reviews.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.reviews.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
-                    <span class="text-xl mr-3">🏢</span>
-                    <span class="font-medium">Företagsrecensioner</span>
-                    @if($counts['new_company_reviews'] > 0 || $counts['pending_company_reviews'] > 0)
-                        <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 notification-badge">{{ $counts['new_company_reviews'] + $counts['pending_company_reviews'] }}</span>
-                    @endif
+                <a href="{{ route('admin.seo-pages.index') }}" class="flex items-center px-4 py-3 mb-1 rounded-lg transition-all duration-200 {{ request()->routeIs('admin.seo-pages.*') ? 'bg-blue-700 shadow-lg' : 'hover:bg-blue-800/50' }}">
+                    <span class="text-xl mr-3">🔍</span>
+                    <span class="font-medium">SEO-sidor</span>
                 </a>
             </nav>
             
@@ -285,5 +320,10 @@
             </main>
         </div>
     </div>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    @stack('scripts')
 </body>
 </html>

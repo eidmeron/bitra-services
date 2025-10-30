@@ -17,6 +17,21 @@ class Category extends Model
         'name',
         'slug',
         'description',
+        'intro_paragraph',
+        'features_benefits',
+        'process_steps',
+        'faq_items',
+        'testimonials',
+        'cta_text',
+        'cta_button_text',
+        'cta_button_url',
+        'meta_keywords',
+        'og_title',
+        'og_description',
+        'og_image',
+        'twitter_title',
+        'twitter_description',
+        'twitter_image',
         'image',
         'icon',
         'status',
@@ -25,6 +40,10 @@ class Category extends Model
 
     protected $casts = [
         'sort_order' => 'integer',
+        'features_benefits' => 'array',
+        'process_steps' => 'array',
+        'faq_items' => 'array',
+        'testimonials' => 'array',
     ];
 
     public function services(): HasMany

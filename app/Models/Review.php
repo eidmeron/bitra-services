@@ -17,13 +17,18 @@ class Review extends Model
         'company_id',
         'user_id',
         'service_id',
-        'rating',
-        'review_text',
-        'status',
+        'review_type',
+        'company_rating',
+        'company_review_text',
+        'company_status',
+        'bitra_rating',
+        'bitra_review_text',
+        'bitra_status',
     ];
 
     protected $casts = [
-        'rating' => 'integer',
+        'company_rating' => 'integer',
+        'bitra_rating' => 'integer',
     ];
 
     protected static function booted(): void
@@ -65,11 +70,56 @@ class Review extends Model
 
     public function scopeApproved($query)
     {
-        return $query->where('status', 'approved');
+        return $query->where('company_status', 'approved');
     }
 
     public function scopePending($query)
     {
-        return $query->where('status', 'pending');
+        return $query->where('company_status', 'pending');
+    }
+
+    public function scopeApprovedCompany($query)
+    {
+        return $query->where('company_status', 'approved');
+    }
+
+    public function scopeApprovedBitra($query)
+    {
+        return $query->where('bitra_status', 'approved');
+    }
+
+    public function scopePendingBitra($query)
+    {
+        return $query->where('bitra_status', 'pending');
+    }
+
+    public function scopeCompanyReviews($query)
+    {
+        return $query->where('review_type', 'company');
+    }
+
+    public function scopeBitraReviews($query)
+    {
+        return $query->where('review_type', 'bitra');
+    }
+
+    public function hasCompanyReview(): bool
+    {
+        return !is_null($this->company_rating);
+    }
+
+    public function hasBitraReview(): bool
+    {
+        return !is_null($this->bitra_rating);
+    }
+
+    public function isCompanyReviewApproved(): bool
+    {
+        return $this->company_status === 'approved';
+    }
+
+    public function isBitraReviewApproved(): bool
+    {
+        return $this->bitra_status === 'approved';
     }
 }

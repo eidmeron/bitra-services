@@ -36,11 +36,13 @@ class Company extends Model
         'review_count',
         'status',
         'payout_method',
+        'deposit_method',
         'swish_number',
         'bank_name',
         'clearing_number',
         'account_number',
         'payout_notes',
+        'deposit_notes',
     ];
 
     protected $casts = [
@@ -85,15 +87,20 @@ class Company extends Model
         return $this->hasOne(CommissionSetting::class);
     }
 
-    public function payouts(): HasMany
+    public function deposits(): HasMany
     {
-        return $this->hasMany(Payout::class);
+        return $this->hasMany(Deposit::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 
     public function updateReviewStats(): void
     {
-        $this->review_count = $this->reviews()->where('status', 'approved')->count();
-        $this->review_average = $this->reviews()->where('status', 'approved')->avg('rating') ?? 0;
+        $this->review_count = $this->reviews()->where('company_status', 'approved')->count();
+        $this->review_average = $this->reviews()->where('company_status', 'approved')->avg('company_rating') ?? 0;
         $this->save();
     }
 
@@ -128,9 +135,9 @@ class Company extends Model
         return $this->review_count ?? 0;
     }
 
-    public function weeklyPayoutReports(): HasMany
+    public function weeklyCommissionReports(): HasMany
     {
-        return $this->hasMany(WeeklyPayoutReport::class);
+        return $this->hasMany(WeeklyCommissionReport::class);
     }
 
     public function complaints(): HasMany

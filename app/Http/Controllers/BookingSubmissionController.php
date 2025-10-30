@@ -80,6 +80,7 @@ class BookingSubmissionController extends Controller
             'booking_type' => 'nullable|in:one_time,subscription',
             'subscription_frequency' => 'nullable|in:daily,weekly,biweekly,monthly',
             'loyalty_points_to_use' => 'nullable|numeric|min:0',
+            'slot_time_id' => 'nullable|exists:slot_times,id',
         ]);
 
         try {

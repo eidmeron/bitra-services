@@ -364,19 +364,26 @@
                 </div>
             @endif
             
+            @php
+                $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                $totalWithVAT = $booking->final_price;
+                $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                $vatAmount = $totalWithVAT - $baseAmount;
+            @endphp
+            
             <div class="price-row">
-                <span>Delsumma:</span>
-                <span>{{ number_format($booking->subtotal ?? ($booking->final_price - ($booking->tax_amount ?? 0)), 2, ',', ' ') }} kr</span>
+                <span>Delsumma (exkl. moms):</span>
+                <span>{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
             </div>
 
             <div class="price-row tax-row">
-                <span>Moms ({{ number_format($booking->tax_rate ?? ($booking->service->tax_rate ?? 25), 2, ',', ' ') }}%):</span>
-                <span>+{{ number_format($booking->tax_amount ?? 0, 2, ',', ' ') }} kr</span>
+                <span>Moms ({{ number_format($taxRate, 2, ',', ' ') }}%):</span>
+                <span>{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
             </div>
             
             <div class="price-row">
                 <span>Totalt (inkl. moms):</span>
-                <span>{{ number_format($booking->total_with_tax ?? $booking->final_price, 2, ',', ' ') }} kr</span>
+                <span>{{ number_format($totalWithVAT, 2, ',', ' ') }} kr</span>
             </div>
         </div>
     </div>

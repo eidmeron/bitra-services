@@ -45,7 +45,7 @@ class CompanyRequest extends FormRequest
             ],
             'site' => 'nullable|url|max:255',
             'status' => 'required|in:active,inactive,pending',
-            'company_logo' => 'nullable|image|max:2048',
+            'company_logo' => 'nullable|image|max:2048000',
             'services' => 'nullable|array',
             'services.*' => 'exists:services,id',
             'cities' => 'nullable|array',

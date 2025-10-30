@@ -1,6 +1,26 @@
+@php
+    use App\Services\PageContentService;
+    
+    $pageContent = PageContentService::getPageContent('homepage', [
+        'meta_title' => 'Hitta och boka professionella tjänster i hela Sverige',
+        'meta_description' => 'Boka professionella tjänster i hela Sverige - från hemstädning till renovering. Vi kopplar dig till Sveriges bästa företag.',
+        'meta_keywords' => 'tjänster, bokning, städning, renovering, hantverk, Sverige',
+        'hero_title' => 'Hitta och boka professionella tjänster i hela Sverige',
+        'hero_subtitle' => 'Från hemstädning till renovering - Vi kopplar dig till Sveriges bästa företag',
+    ]);
+    
+    $seoData = PageContentService::getSeoData('homepage', [
+        'title' => $pageContent['meta_title'],
+        'description' => $pageContent['meta_description'],
+        'keywords' => $pageContent['meta_keywords'],
+    ]);
+@endphp
+
 @extends('layouts.public')
 
-@section('title', 'Hitta och boka professionella tjänster i hela Sverige')
+@section('title', $seoData['title'])
+@section('meta_description', $seoData['description'])
+@section('meta_keywords', $seoData['keywords'])
 
 @push('styles')
 <style>
@@ -116,10 +136,10 @@
                 <!-- Left Content -->
                 <div class="text-center lg:text-left">
                     <h1 class="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 animate-fadeInUp">
-                        Hitta och boka <span class="text-yellow-300">professionella tjänster</span> i hela Sverige
+                        {!! $pageContent['hero_title'] ?: 'Hitta och boka <span class="text-yellow-300">professionella tjänster</span> i hela Sverige' !!}
                     </h1>
                     <p class="text-lg md:text-xl mb-6 text-blue-100 animate-fadeInUp delay-100">
-                        Från hemstädning till renovering - Vi kopplar dig till Sveriges bästa företag
+                        {{ $pageContent['hero_subtitle'] ?: 'Från hemstädning till renovering - Vi kopplar dig till Sveriges bästa företag' }}
                     </p>
 
                     <!-- Enhanced Search Bar -->
@@ -140,49 +160,123 @@
                                                class="w-full px-4 py-4 bg-white border-2 border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 rounded-xl text-gray-900 shadow-sm">
                                         
                                         <!-- Search Suggestions -->
-                                        <div x-show="showSuggestions && (filteredCities.length > 0 || filteredServices.length > 0 || filteredCategories.length > 0)" 
+                                        <div x-show="showSuggestions && (searchResults.cities.length > 0 || searchResults.services.length > 0 || searchResults.categories.length > 0 || searchResults.companies.length > 0 || searchResults.suggestions.length > 0)" 
                                              x-transition
                                              class="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-80 overflow-y-auto">
                                             
+                                            <!-- Loading State -->
+                                            <template x-if="isLoading">
+                                                <div class="px-4 py-3 text-center text-gray-500">
+                                                    <div class="flex items-center justify-center">
+                                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                        </svg>
+                                                        Söker...
+                                                    </div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- Smart Suggestions -->
+                                            <template x-if="!isLoading && searchResults.suggestions.length > 0">
+                                                <div class="px-4 py-2 bg-blue-50 border-b">
+                                                    <div class="text-xs font-semibold text-blue-600 uppercase tracking-wide">🎯 Rekommenderat</div>
+                                                </div>
+                                            </template>
+                                            <template x-for="suggestion in searchResults.suggestions" :key="'suggestion-' + suggestion.text">
+                                                <div @click="selectResult(suggestion)" 
+                                                     class="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="font-medium text-gray-900 flex items-center">
+                                                        <span class="mr-2" x-text="suggestion.icon"></span>
+                                                        <span x-text="suggestion.text"></span>
+                                                    </div>
+                                                    <div class="text-sm text-blue-600">Smart förslag</div>
+                                                </div>
+                                            </template>
+                                            
                                             <!-- Cities -->
-                                            <template x-if="filteredCities.length > 0">
+                                            <template x-if="!isLoading && searchResults.cities.length > 0">
                                                 <div class="px-4 py-2 bg-gray-50 border-b">
                                                     <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">📍 Städer</div>
                                                 </div>
                                             </template>
-                                            <template x-for="city in filteredCities" :key="'city-' + city.id">
-                                                <div @click="selectCity(city)" 
+                                            <template x-for="city in searchResults.cities" :key="'city-' + city.id">
+                                                <div @click="selectResult(city)" 
                                                      class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                                    <div class="font-medium text-gray-900" x-text="city.name"></div>
-                                                    <div class="text-sm text-gray-500">Stad</div>
+                                                    <div class="font-medium text-gray-900 flex items-center">
+                                                        <span class="mr-2" x-text="city.icon"></span>
+                                                        <span x-text="city.name"></span>
+                                                    </div>
+                                                    <div class="text-sm text-gray-500" x-text="city.description"></div>
                                                 </div>
                                             </template>
                                             
                                             <!-- Services -->
-                                            <template x-if="filteredServices.length > 0">
+                                            <template x-if="!isLoading && searchResults.services.length > 0">
                                                 <div class="px-4 py-2 bg-gray-50 border-b">
                                                     <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">🛠️ Tjänster</div>
                                                 </div>
                                             </template>
-                                            <template x-for="service in filteredServices" :key="'service-' + service.id">
-                                                <div @click="selectService(service)" 
+                                            <template x-for="service in searchResults.services" :key="'service-' + service.id">
+                                                <div @click="selectResult(service)" 
                                                      class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                                    <div class="font-medium text-gray-900" x-text="service.name"></div>
-                                                    <div class="text-sm text-gray-500" x-text="service.category_name"></div>
+                                                    <div class="font-medium text-gray-900 flex items-center justify-between">
+                                                        <div class="flex items-center">
+                                                            <span class="mr-2" x-text="service.icon"></span>
+                                                            <span x-text="service.name"></span>
+                                                        </div>
+                                                        <span x-show="service.price" class="text-sm font-semibold text-green-600" x-text="service.price"></span>
+                                                    </div>
+                                                    <div class="text-sm text-gray-500" x-text="service.description"></div>
                                                 </div>
                                             </template>
                                             
                                             <!-- Categories -->
-                                            <template x-if="filteredCategories.length > 0">
+                                            <template x-if="!isLoading && searchResults.categories.length > 0">
                                                 <div class="px-4 py-2 bg-gray-50 border-b">
                                                     <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">📂 Kategorier</div>
                                                 </div>
                                             </template>
-                                            <template x-for="category in filteredCategories" :key="'category-' + category.id">
-                                                <div @click="selectCategory(category)" 
+                                            <template x-for="category in searchResults.categories" :key="'category-' + category.id">
+                                                <div @click="selectResult(category)" 
                                                      class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
-                                                    <div class="font-medium text-gray-900" x-text="category.name"></div>
-                                                    <div class="text-sm text-gray-500">Kategori</div>
+                                                    <div class="font-medium text-gray-900 flex items-center">
+                                                        <span class="mr-2" x-text="category.icon"></span>
+                                                        <span x-text="category.name"></span>
+                                                    </div>
+                                                    <div class="text-sm text-gray-500" x-text="category.description"></div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- Companies -->
+                                            <template x-if="!isLoading && searchResults.companies.length > 0">
+                                                <div class="px-4 py-2 bg-gray-50 border-b">
+                                                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wide">🏢 Företag</div>
+                                                </div>
+                                            </template>
+                                            <template x-for="company in searchResults.companies" :key="'company-' + company.id">
+                                                <div @click="selectResult(company)" 
+                                                     class="px-4 py-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0">
+                                                    <div class="font-medium text-gray-900 flex items-center justify-between">
+                                                        <div class="flex items-center">
+                                                            <span class="mr-2" x-text="company.icon"></span>
+                                                            <span x-text="company.name"></span>
+                                                        </div>
+                                                        <div x-show="company.rating" class="flex items-center text-sm">
+                                                            <span class="text-yellow-500">★</span>
+                                                            <span class="ml-1 text-gray-600" x-text="company.rating"></span>
+                                                        </div>
+                                                    </div>
+                                                    <div class="text-sm text-gray-500" x-text="company.description"></div>
+                                                </div>
+                                            </template>
+                                            
+                                            <!-- Show All Results -->
+                                            <template x-if="!isLoading && getTotalResults() > 0">
+                                                <div class="px-4 py-3 bg-gray-100 border-t">
+                                                    <div @click="handleSearch()" class="text-center text-blue-600 font-medium cursor-pointer hover:text-blue-800">
+                                                        Visa alla resultat (<span x-text="getTotalResults()"></span>)
+                                                    </div>
                                                 </div>
                                             </template>
                                         </div>
@@ -192,6 +286,7 @@
                                 <!-- Search Button -->
                                 <button type="button" 
                                         @click="handleSearch()"
+                                        data-conversion="search"
                                         class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
                                     <span class="flex items-center justify-center">
                                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -303,142 +398,215 @@
         </div>
     </section>
 
+    <!-- Happy People & Benefits Section -->
+    <section class="py-16 lg:py-24 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Left: Happy People Image -->
+                <div class="order-2 lg:order-1">
+                    <div class="relative">
+                        <img src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80" 
+                             alt="Nöjda kunder som använder Bitra" 
+                             class="rounded-2xl shadow-2xl w-full h-96 object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+                        <div class="absolute bottom-6 left-6 text-white">
+                            <h3 class="text-2xl font-bold mb-2">10,000+ nöjda kunder</h3>
+                            <p class="text-lg">Sveriges mest betrodda tjänsteplattform</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Benefits Content -->
+                <div class="order-1 lg:order-2">
+                    <h2 class="text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-8">
+                        Varför välja <span class="text-blue-600">Bitra</span>?
+                    </h2>
+                    
+                    <div class="space-y-8">
+                        <!-- Save Time -->
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-100 dark:bg-green-900 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">⏰</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Spara tid</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Slipp leta efter pålitliga leverantörer. Vi har redan gjort jobbet åt dig genom att verifiera alla våra partners.</p>
+                            </div>
+                        </div>
+
+                        <!-- Best Value -->
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">💰</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Bästa värde</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Konkurrenskraftiga och transparenta priser som passar dina behov. Inga dolda avgifter eller prismanipulation.</p>
+                            </div>
+                        </div>
+
+                        <!-- Confidence -->
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">🛡️</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Trygghet</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Endast förhandsvalda och kvalitetsgaranterade företag. Varje partner uppfyller Bitras kvalitetskrav.</p>
+                            </div>
+                        </div>
+
+                        <!-- Lifetime Records -->
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">📋</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Livstidsregister</h3>
+                                <p class="text-gray-600 dark:text-gray-300">All din servicehistorik samlad och säker. Tillgänglig för alltid i vårt enkla och säkra system.</p>
+                            </div>
+                        </div>
+
+                        <!-- Loyalty Benefits -->
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-red-100 dark:bg-red-900 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">🎁</span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Belöningar</h3>
+                                <p class="text-gray-600 dark:text-gray-300">Tjäna poäng på varje bokning och vid nya medlemsregistreringar. Använd poängen för framtida tjänster och ta del av regelbundna rabatter.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white">
+                        <h3 class="text-2xl font-bold mb-4">Få en offert nu med enkelhet och transparens</h3>
+                        <p class="text-blue-100 mb-6">Vi garanterar kvaliteten på vår service. De bästa priserna någonsin, utan konkurrens, i Sverige. Vi erbjuder också periodiska rabatter.</p>
+                        <a href="{{ route('public.categories') }}" 
+                           data-conversion="booking"
+                           class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-gray-100 transition-colors duration-300">
+                            <span class="mr-2">🚀</span>
+                            Börja boka nu
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     @push('scripts')
     <script>
     function enhancedSearch() {
         return {
             searchQuery: '',
             showSuggestions: false,
-            cities: [],
-            services: [],
-            categories: [],
-            filteredCities: [],
-            filteredServices: [],
-            filteredCategories: [],
+            searchResults: {
+                cities: [],
+                services: [],
+                categories: [],
+                companies: [],
+                suggestions: []
+            },
+            isLoading: false,
+            searchTimeout: null,
             
             init() {
-                // Load all data from server
-                this.loadData();
+                // Initialize with empty state
             },
             
-            async loadData() {
-                try {
-                    // Load cities
-                    const citiesResponse = await fetch('/api/cities');
-                    if (citiesResponse.ok) {
-                        this.cities = await citiesResponse.json();
-                    }
-                    
-                    // Load services
-                    const servicesResponse = await fetch('/api/services');
-                    if (servicesResponse.ok) {
-                        this.services = await servicesResponse.json();
-                    }
-                    
-                    // Load categories
-                    const categoriesResponse = await fetch('/api/categories');
-                    if (categoriesResponse.ok) {
-                        this.categories = await categoriesResponse.json();
-                    }
-                } catch (error) {
-                    console.error('Error loading data:', error);
-                }
-            },
-            
-            performSearch() {
+            async performSearch() {
                 if (this.searchQuery.length < 2) {
-                    this.filteredCities = [];
-                    this.filteredServices = [];
-                    this.filteredCategories = [];
+                    this.searchResults = {
+                        cities: [],
+                        services: [],
+                        categories: [],
+                        companies: [],
+                        suggestions: []
+                    };
                     return;
                 }
                 
-                const query = this.searchQuery.toLowerCase();
+                // Clear previous timeout
+                if (this.searchTimeout) {
+                    clearTimeout(this.searchTimeout);
+                }
                 
-                // Filter cities
-                this.filteredCities = this.cities.filter(city => 
-                    city.name.toLowerCase().includes(query)
-                ).slice(0, 5);
-                
-                // Filter services
-                this.filteredServices = this.services.filter(service => 
-                    service.name.toLowerCase().includes(query) ||
-                    service.description.toLowerCase().includes(query)
-                ).slice(0, 5);
-                
-                // Filter categories
-                this.filteredCategories = this.categories.filter(category => 
-                    category.name.toLowerCase().includes(query) ||
-                    category.description.toLowerCase().includes(query)
-                ).slice(0, 5);
+                // Debounce search requests
+                this.searchTimeout = setTimeout(async () => {
+                    this.isLoading = true;
+                    
+                    try {
+                        const response = await fetch(`/api/search?q=${encodeURIComponent(this.searchQuery)}&limit=5`);
+                        if (response.ok) {
+                            this.searchResults = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Search error:', error);
+                    } finally {
+                        this.isLoading = false;
+                    }
+                }, 300);
             },
             
-            selectCity(city) {
-                this.searchQuery = city.name;
+            selectResult(result) {
+                this.searchQuery = result.name || result.text;
                 this.showSuggestions = false;
-                // Navigate to city page
-                window.location.href = `/search?city=${city.id}`;
-            },
-            
-            selectService(service) {
-                this.searchQuery = service.name;
-                this.showSuggestions = false;
-                // Navigate to service page
-                window.location.href = `/search?service=${service.id}`;
-            },
-            
-            selectCategory(category) {
-                this.searchQuery = category.name;
-                this.showSuggestions = false;
-                // Navigate to category page
-                window.location.href = `/search?category=${category.id}`;
+                window.location.href = result.url;
             },
             
             handleSearch() {
                 if (!this.searchQuery.trim()) return;
                 
-                // Parse search query for service + city combinations
+                // Try to find exact matches first
                 const query = this.searchQuery.toLowerCase();
-                let cityId = null;
-                let serviceId = null;
-                let categoryId = null;
                 
-                // Check for city matches
-                for (const city of this.cities) {
-                    if (query.includes(city.name.toLowerCase())) {
-                        cityId = city.id;
-                        break;
+                // Check for exact matches in results
+                for (const city of this.searchResults.cities) {
+                    if (city.name.toLowerCase() === query) {
+                        window.location.href = city.url;
+                        return;
                     }
                 }
                 
-                // Check for service matches
-                for (const service of this.services) {
-                    if (query.includes(service.name.toLowerCase())) {
-                        serviceId = service.id;
-                        break;
+                for (const service of this.searchResults.services) {
+                    if (service.name.toLowerCase() === query) {
+                        window.location.href = service.url;
+                        return;
                     }
                 }
                 
-                // Check for category matches
-                for (const category of this.categories) {
-                    if (query.includes(category.name.toLowerCase())) {
-                        categoryId = category.id;
-                        break;
+                for (const category of this.searchResults.categories) {
+                    if (category.name.toLowerCase() === query) {
+                        window.location.href = category.url;
+                        return;
                     }
                 }
                 
-                // Build search URL
-                const params = new URLSearchParams();
-                if (cityId) params.append('city', cityId);
-                if (serviceId) params.append('service', serviceId);
-                if (categoryId) params.append('category', categoryId);
-                
-                // If no specific matches, do a general search
-                if (!cityId && !serviceId && !categoryId) {
-                    params.append('q', this.searchQuery);
+                for (const company of this.searchResults.companies) {
+                    if (company.name.toLowerCase() === query) {
+                        window.location.href = company.url;
+                        return;
+                    }
                 }
                 
-                window.location.href = `/search?${params.toString()}`;
+                // Check for smart suggestions
+                for (const suggestion of this.searchResults.suggestions) {
+                    if (suggestion.text.toLowerCase() === query) {
+                        window.location.href = suggestion.url;
+                        return;
+                    }
+                }
+                
+                // If no exact match, do a general search
+                window.location.href = `/search?q=${encodeURIComponent(this.searchQuery)}`;
+            },
+            
+            getTotalResults() {
+                return this.searchResults.cities.length + 
+                       this.searchResults.services.length + 
+                       this.searchResults.categories.length + 
+                       this.searchResults.companies.length;
             }
         }
     }
@@ -450,10 +618,10 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="text-4xl md:text-5xl font-bold mb-4">
-                    Så fungerar det
+                    Så fungerar Bitra
                 </h2>
                 <p class="text-xl text-gray-600 dark:text-gray-400">
-                    Tre enkla steg till din perfekta tjänst
+                    Enkelt, säkert och transparent - så får du den bästa tjänsten
                 </p>
             </div>
 
@@ -463,9 +631,9 @@
                     <div class="bg-gradient-to-br from-blue-500 to-purple-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <span class="text-3xl font-bold text-white">1</span>
                     </div>
-                    <h3 class="text-2xl font-bold mb-4">Sök och hitta</h3>
+                    <h3 class="text-2xl font-bold mb-4">Noggrant utvalda partners</h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Använd vårt smarta sökverktyg för att hitta den perfekta tjänsten i din stad. Jämför priser och recensioner.
+                        Vi samarbetar endast med utvalda och granskade företag i varje stad. Varje partner uppfyller Bitras kvalitetskrav så att du alltid får pålitlig och professionell service.
                     </p>
                 </div>
 
@@ -474,9 +642,9 @@
                     <div class="bg-gradient-to-br from-purple-500 to-pink-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <span class="text-3xl font-bold text-white">2</span>
                     </div>
-                    <h3 class="text-2xl font-bold mb-4">Boka direkt</h3>
+                    <h3 class="text-2xl font-bold mb-4">Enhetlig plattform</h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Fyll i vårt enkla bokningsformulär. Vi kopplar dig till det bästa företaget för dina behov.
+                        Alla tjänster samlade på ett ställe: sök, jämför, boka och betala utan mellanhänder. Priserna är tydliga och fasta — inga dolda avgifter eller prismanipulation.
                     </p>
                 </div>
 
@@ -485,9 +653,9 @@
                     <div class="bg-gradient-to-br from-green-500 to-emerald-600 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <span class="text-3xl font-bold text-white">3</span>
                     </div>
-                    <h3 class="text-2xl font-bold mb-4">Få det gjort</h3>
+                    <h3 class="text-2xl font-bold mb-4">Enkel bokning & säkra register</h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Företaget kontaktar dig för att bekräfta detaljer. Sedan utför de tjänsten professionellt.
+                        Boka på några klick. Varje bokning dokumenteras och sparas säkert så att din servicehistorik är tillgänglig när du behöver den.
                     </p>
                 </div>
             </div>
@@ -686,41 +854,80 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="text-4xl md:text-5xl font-bold mb-4">
-                    Varför välja oss?
+                    Fördelar med Bitra
                 </h2>
                 <p class="text-xl text-gray-600 dark:text-gray-400">
-                    Det som gör oss unika
+                    Varför våra kunder väljer oss framför andra
                 </p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <!-- Transparent Pricing -->
+                <!-- Save Time -->
                 <div class="text-center">
                     <div class="bg-blue-100 dark:bg-blue-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        <span class="text-2xl">⏰</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-2">Transparenta priser</h3>
+                    <h3 class="text-xl font-bold mb-2">Spara tid</h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Inga dolda avgifter. Få ett tydligt pris innan du bokar.
+                        Slipp leta efter pålitliga företag och jämföra otaliga erbjudanden.
                     </p>
                 </div>
 
-                <!-- Quality Guarantee -->
+                <!-- Best Value -->
                 <div class="text-center">
                     <div class="bg-green-100 dark:bg-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
+                        <span class="text-2xl">💰</span>
                     </div>
-                    <h3 class="text-xl font-bold mb-2">Kvalitetsgaranti</h3>
+                    <h3 class="text-xl font-bold mb-2">Bästa värde</h3>
                     <p class="text-gray-600 dark:text-gray-400">
-                        Alla företag är verifierade och kvalitetssäkrade av oss.
+                        Få de bästa priserna för varje tjänst, anpassade efter dina behov.
                     </p>
                 </div>
 
-                <!-- Fast Service -->
+                <!-- Confidence -->
+                <div class="text-center">
+                    <div class="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">🛡️</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Trygghet</h3>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Endast förhandsvalda och kvalitetsgaranterade företag.
+                    </p>
+                </div>
+
+                <!-- Lifetime Records -->
+                <div class="text-center">
+                    <div class="bg-yellow-100 dark:bg-yellow-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">📋</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Livstidsregister</h3>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        All din servicehistorik samlad och säker - tillgänglig för alltid.
+                    </p>
+                </div>
+
+                <!-- Regular Discounts -->
+                <div class="text-center">
+                    <div class="bg-indigo-100 dark:bg-indigo-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">🏷️</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Regelbundna rabatter</h3>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Njut av regelbundna rabatter och kampanjer.
+                    </p>
+                </div>
+
+                <!-- Points System -->
+                <div class="text-center">
+                    <div class="bg-pink-100 dark:bg-pink-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">⭐</span>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Poängsystem</h3>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Tjäna poäng vid varje bokning och vid nyregistrering av medlemmar.
+                    </p>
+                </div>
+            </div>
                 <div class="text-center">
                     <div class="bg-purple-100 dark:bg-purple-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -916,7 +1123,7 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                @foreach(\App\Models\Company::where('status', 'active')->withAvg('reviews', 'rating')->orderByDesc('reviews_avg_rating')->take(6)->get() as $company)
+                @foreach(\App\Models\Company::where('status', 'active')->withAvg('reviews', 'company_rating')->orderByDesc('reviews_avg_company_rating')->take(6)->get() as $company)
                     <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover-lift">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
@@ -935,7 +1142,7 @@
                         <!-- Rating -->
                         <div class="flex items-center mb-4">
                             @php
-                                $avgRating = $company->reviews_avg_rating ?? 0;
+                                $avgRating = $company->reviews_avg_company_rating ?? 0;
                                 $fullStars = floor($avgRating);
                                 $hasHalfStar = ($avgRating - $fullStars) >= 0.5;
                             @endphp
@@ -1005,6 +1212,7 @@
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;" 
+                   data-conversion="search"
                    class="inline-flex items-center justify-center px-8 py-4 bg-white text-blue-600 rounded-xl font-bold text-lg hover:bg-gray-100 transform hover:scale-105 transition-all duration-300 shadow-lg">
                     <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>

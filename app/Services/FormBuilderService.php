@@ -62,6 +62,7 @@ class FormBuilderService
             }
             
             $form->update([
+                'service_id' => $data['service_id'] ?? $form->service_id,
                 'form_name' => $data['form_name'] ?? $form->form_name,
                 'form_slug' => $slug,
                 'form_schema' => $data['form_schema'] ?? $form->form_schema,

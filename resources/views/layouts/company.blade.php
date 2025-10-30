@@ -57,6 +57,11 @@
                         <span class="mr-1">⏰</span> Tidsluckor
                     </a>
                     
+                    <a href="{{ route('company.deposits.index') }}" 
+                       class="px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('company.deposits.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100' }}">
+                        <span class="mr-1">💰</span> Deposits
+                    </a>
+                    
                     <a href="{{ route('company.messages.index') }}" 
                        class="px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('company.messages.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100' }}">
                         <span class="mr-1">💬</span> Meddelanden
@@ -77,10 +82,6 @@
                         <span class="mr-1">📝</span> Reklamationer
                     </a>
                     
-                    <a href="{{ route('company.profile') }}" 
-                       class="px-3 py-2 rounded-md text-sm font-medium {{ request()->routeIs('company.profile') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100' }}">
-                        <span class="mr-1">🏢</span> Företagsprofil
-                    </a>
                     
                     <!-- Company Dropdown -->
                     <div x-data="{ open: false }" class="relative">
@@ -161,6 +162,11 @@
                 <a href="{{ route('company.slot-times.index') }}" 
                    class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('company.slot-times.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100' }}">
                     <span class="mr-2">⏰</span> Tidsluckor
+                </a>
+                
+                <a href="{{ route('company.deposits.index') }}" 
+                   class="block px-3 py-2 rounded-md text-base font-medium {{ request()->routeIs('company.deposits.*') ? 'bg-green-100 text-green-700' : 'text-gray-700 hover:bg-gray-100' }}">
+                    <span class="mr-2">💰</span> Deposits
                 </a>
                 
                 <a href="{{ route('company.messages.index') }}" 

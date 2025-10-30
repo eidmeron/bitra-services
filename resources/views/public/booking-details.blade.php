@@ -113,12 +113,22 @@
                     @endif
                     
                     <!-- Tax Section -->
-                    @if($booking->tax_amount > 0)
+                    @php
+                        $taxRate = $booking->tax_rate ?? $booking->service->tax_rate ?? 25;
+                        $totalWithVAT = $booking->final_price;
+                        $baseAmount = $totalWithVAT / (1 + ($taxRate / 100));
+                        $vatAmount = $totalWithVAT - $baseAmount;
+                    @endphp
+                    
                     <div class="flex justify-between items-center py-2 border-b border-green-200">
-                        <span class="text-green-800 font-medium">📊 Moms ({{ number_format($booking->tax_rate * 100, 0, ',', ' ') }}%):</span>
-                        <span class="font-semibold text-orange-600">+{{ number_format($booking->tax_amount, 2, ',', ' ') }} kr</span>
+                        <span class="text-green-800 font-medium">📊 Delsumma (exkl. moms):</span>
+                        <span class="font-semibold text-green-600">{{ number_format($baseAmount, 2, ',', ' ') }} kr</span>
                     </div>
-                    @endif
+                    
+                    <div class="flex justify-between items-center py-2 border-b border-green-200">
+                        <span class="text-green-800 font-medium">📊 Moms ({{ number_format($taxRate, 0, ',', ' ') }}%):</span>
+                        <span class="font-semibold text-orange-600">{{ number_format($vatAmount, 2, ',', ' ') }} kr</span>
+                    </div>
                     
                     <!-- Extra Fees Section -->
                     @if($booking->total_extra_fees > 0)

@@ -8,7 +8,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Company;
 use App\Models\Service;
+use App\Models\SlotTime;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -157,5 +159,27 @@ class DashboardController extends Controller
             'loyaltyStats',
             'recentComplaints'
         ));
+    }
+
+    /**
+     * Clean up past slot times
+     */
+    public function cleanupPastSlots(Request $request): RedirectResponse
+    {
+        $daysToKeep = (int) $request->input('days_to_keep', 0);
+        
+        // Count past slots before deletion
+        $pastSlotsCount = SlotTime::where('date', '<', now()->format('Y-m-d'))->count();
+        
+        if ($pastSlotsCount === 0) {
+            return redirect()->route('admin.dashboard')
+                ->with('info', 'Inga gamla tidsluckor hittades att rensa.');
+        }
+        
+        // Delete past slots
+        $deletedCount = SlotTime::cleanupPast($daysToKeep);
+        
+        return redirect()->route('admin.dashboard')
+            ->with('success', "Rensade {$deletedCount} gamla tidsluckor från schemat.");
     }
 }

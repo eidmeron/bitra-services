@@ -33,14 +33,14 @@ final class CompanyController extends Controller
             ->whereHas('cities', function ($query) use ($validated) {
                 $query->where('cities.id', $validated['city_id']);
             })
-            ->withAvg('reviews', 'rating')
+            ->withAvg('reviews', 'company_rating')
             ->withCount('reviews')
             ->with(['reviews' => function ($query) {
-                $query->where('status', 'approved')
+                $query->where('company_status', 'approved')
                     ->latest()
                     ->limit(3);
             }])
-            ->orderByDesc('reviews_avg_rating')
+            ->orderByDesc('reviews_avg_company_rating')
             ->orderByDesc('reviews_count')
             ->get()
             ->map(function ($company) {
@@ -48,7 +48,7 @@ final class CompanyController extends Controller
                     'id' => $company->id,
                     'name' => $company->company_name,
                     'logo' => $company->logo ? \Storage::url($company->logo) : null,
-                    'rating' => round($company->reviews_avg_rating ?? 0, 1),
+                    'rating' => round($company->reviews_avg_company_rating ?? 0, 1),
                     'review_count' => $company->reviews_count ?? 0,
                     'description' => $company->description,
                     'phone' => $company->phone,

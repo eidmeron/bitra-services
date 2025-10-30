@@ -389,6 +389,59 @@
                 formData: {},
                 applyRot: false,
                 
+                // Loyalty Points
+                userLoyaltyPoints: {{ auth()->check() ? (auth()->user()->loyalty_points_balance ?? 0) : 0 }},
+                useLoyaltyPoints: false,
+                loyaltyPointsToUse: 0,
+                
+                // Slot time data
+                availableSlots: {},
+                selectedDate: null,
+                selectedTimeSlot: null,
+                loadingSlots: false,
+                
+                // Swedish Calendar data
+                currentDate: new Date(),
+                currentMonth: new Date().getMonth(),
+                currentYear: new Date().getFullYear(),
+                swedishWeekdays: ['Mån', 'Tis', 'Ons', 'Tor', 'Fre', 'Lör', 'Sön'],
+                swedishMonths: [
+                    'Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni',
+                    'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'
+                ],
+                calendarDays: [],
+                availableTimesForSelectedDate: [],
+                selectedSubscriptionDays: [],
+                
+                // Computed properties
+                get currentMonthName() {
+                    return this.swedishMonths[this.currentMonth];
+                },
+                
+                get selectedDateFormatted() {
+                    if (!this.selectedDate) return '';
+                    const date = new Date(this.selectedDate);
+                    return date.toLocaleDateString('sv-SE', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    });
+                },
+                
+                get selectedDateInfo() {
+                    if (!this.selectedDate) return '';
+                    const slots = this.availableSlots[this.selectedDate];
+                    if (slots && slots.slots) {
+                        return `${slots.slots.length} tillgängliga tider`;
+                    }
+                    return 'Inga tider tillgängliga';
+                },
+                
+                get isSubscriptionBooking() {
+                    return this.bookingType === 'subscription';
+                },
+                
                 // Price
                 priceBreakdown: {
                     base_price: 0,
@@ -402,13 +455,6 @@
                 showPriceDetails: false,
                 isSubmitting: false,
                 
-                // Company selection
-                companies: [],
-                selectedCompanyId: null,
-                autoSelectCompany: false,
-                loadingCompanies: false,
-                showCompanies: window.bookingSettings?.show_companies ?? true,
-                allowCompanySelection: window.bookingSettings?.allow_company_selection ?? true,
                 
                 // Conditional logic
                 conditionalFields: @json($form->fields->mapWithKeys(function($field) {
@@ -493,6 +539,12 @@
                         if (this.currentStep < this.steps.length - 1) {
                             this.currentStep++;
                             
+                            // Load available slots when reaching step 3 (Typ - index 2)
+                            if (this.currentStep === 2) {
+                                this.loadAvailableSlots();
+                            }
+                            
+                            
                             // Initialize phone input when reaching step 5 (index 4)
                             if (this.currentStep === 4) {
                                 setTimeout(() => this.initPhoneInput(), 200);
@@ -535,6 +587,15 @@
                             }
                             return true;
                         case 2: // Booking type
+                            // Validate date and time selection
+                            if (!this.selectedDate) {
+                                this.showToast('Välj ett datum för din bokning', 'error');
+                                return false;
+                            }
+                            if (!this.selectedTimeSlot) {
+                                this.showToast('Välj en tid för din bokning', 'error');
+                                return false;
+                            }
                             return true;
                         case 3: // Form fields
                             // Validate required form fields
@@ -649,61 +710,181 @@
                 // City changed
                 cityChanged() {
                     if (this.cityId) {
-                        this.fetchCompanies();
                         this.calculatePrice();
+                        
+                        // Always load available slots after city selection
+                        this.loadAvailableSlots();
                     }
                 },
                 
-                // Fetch available companies
-                async fetchCompanies() {
-                    if (!this.showCompanies || !this.cityId || !this.serviceId) {
-                        this.companies = [];
-                        return;
-                    }
+                
+                // Load available slots
+                async loadAvailableSlots() {
+                    if (!this.cityId || !this.serviceId) return;
                     
-                    this.loadingCompanies = true;
+                    this.loadingSlots = true;
+                    this.availableSlots = {};
+                    this.selectedDate = null;
+                    this.selectedTimeSlot = null;
                     
                     try {
-                        const response = await window.axios.get('/api/companies/available', {
-                            params: {
-                                service_id: this.serviceId,
-                                city_id: this.cityId
-                            }
-                        });
+                        let url = '/api/slot-times/all-available';
+                        let params = {
+                            service_id: this.serviceId,
+                            city_id: this.cityId,
+                            days: 30
+                        };
                         
-                        if (response.data.success) {
-                            this.companies = response.data.companies || [];
-                            console.log('Fetched companies:', this.companies);
+                        const response = await window.axios.get(url, { params });
+                        
+                        if (response.data.slots) {
+                            this.availableSlots = response.data.slots;
+                            console.log('Loaded available slots:', this.availableSlots);
+                            console.log('Total days:', response.data.total_days);
+                            console.log('Total slots:', response.data.total_slots);
                             
-                            // Auto-select first company if only one available
-                            if (this.companies.length === 1) {
-                                this.selectedCompanyId = this.companies[0].id;
-                                this.autoSelectCompany = false;
-                            }
+                            // Generate calendar after loading slots
+                            this.generateCalendarDays();
                         }
                     } catch (error) {
-                        console.error('Error fetching companies:', error);
-                        this.companies = [];
+                        console.error('Error loading available slots:', error);
+                        this.availableSlots = {};
                     } finally {
-                        this.loadingCompanies = false;
+                        this.loadingSlots = false;
                     }
                 },
                 
-                // Select a company
-                selectCompany(companyId) {
-                    if (!this.allowCompanySelection && !this.autoSelectCompany) return;
+                // Select a date
+                selectDate(date) {
+                    this.selectedDate = date;
+                    this.selectedTimeSlot = null; // Reset time selection
+                },
+                
+                // Select a time slot
+                selectTimeSlot(slotId) {
+                    this.selectedTimeSlot = slotId;
+                    // Recalculate price when time slot is selected
+                    this.calculatePrice();
+                },
+                
+                // Swedish Calendar methods
+                generateCalendarDays() {
+                    const year = this.currentYear;
+                    const month = this.currentMonth;
+                    const firstDay = new Date(year, month, 1);
+                    const lastDay = new Date(year, month + 1, 0);
+                    const startDate = new Date(firstDay);
+                    startDate.setDate(startDate.getDate() - firstDay.getDay() + 1); // Start from Monday
                     
-                    this.selectedCompanyId = companyId;
-                    this.autoSelectCompany = false;
+                    const days = [];
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    for (let i = 0; i < 42; i++) { // 6 weeks
+                        const date = new Date(startDate);
+                        date.setDate(startDate.getDate() + i);
+                        
+                        const dateString = date.toISOString().split('T')[0];
+                        const isCurrentMonth = date.getMonth() === month;
+                        const isToday = date.getTime() === today.getTime();
+                        const isSelected = this.selectedDate === dateString;
+                        const isAvailable = this.isDateAvailable(date);
+                        const hasSlots = this.availableSlots[dateString] && this.availableSlots[dateString].slots.length > 0;
+                        
+                        days.push({
+                            date: dateString,
+                            dayNumber: date.getDate(),
+                            isCurrentMonth,
+                            isToday,
+                            isSelected,
+                            isAvailable,
+                            hasSlots
+                        });
+                    }
+                    
+                    this.calendarDays = days;
                 },
                 
-                // Toggle auto-select
-                toggleAutoSelect() {
-                    this.autoSelectCompany = !this.autoSelectCompany;
-                    if (this.autoSelectCompany) {
-                        this.selectedCompanyId = null;
+                isDateAvailable(date) {
+                    // Check if date is in the future and has available slots
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    if (date < today) return false;
+                    
+                    const dateString = date.toISOString().split('T')[0];
+                    return this.availableSlots[dateString] && this.availableSlots[dateString].slots.length > 0;
+                },
+                
+                selectCalendarDate(day) {
+                    if (!day.isAvailable) return;
+                    
+                    this.selectedDate = day.date;
+                    this.selectedTimeSlot = null;
+                    
+                    // Load times for selected date
+                    if (this.availableSlots[day.date]) {
+                        this.availableTimesForSelectedDate = this.availableSlots[day.date].slots;
                     }
                 },
+                
+                clearDateSelection() {
+                    this.selectedDate = null;
+                    this.selectedTimeSlot = null;
+                    this.availableTimesForSelectedDate = [];
+                },
+                
+                previousMonth() {
+                    if (this.currentMonth === 0) {
+                        this.currentMonth = 11;
+                        this.currentYear--;
+                    } else {
+                        this.currentMonth--;
+                    }
+                    this.generateCalendarDays();
+                },
+                
+                nextMonth() {
+                    if (this.currentMonth === 11) {
+                        this.currentMonth = 0;
+                        this.currentYear++;
+                    } else {
+                        this.currentMonth++;
+                    }
+                    this.generateCalendarDays();
+                },
+                
+                toggleSubscriptionDay(dayIndex) {
+                    const index = this.selectedSubscriptionDays.indexOf(dayIndex);
+                    if (index > -1) {
+                        this.selectedSubscriptionDays.splice(index, 1);
+                    } else {
+                        this.selectedSubscriptionDays.push(dayIndex);
+                    }
+                },
+                
+                getDayNumber(dayIndex) {
+                    // Get the day number for the selected date's week
+                    if (!this.selectedDate) return '';
+                    
+                    const selectedDate = new Date(this.selectedDate);
+                    const startOfWeek = new Date(selectedDate);
+                    startOfWeek.setDate(selectedDate.getDate() - selectedDate.getDay() + 1); // Monday
+                    
+                    const targetDate = new Date(startOfWeek);
+                    targetDate.setDate(startOfWeek.getDate() + dayIndex);
+                    
+                    return targetDate.getDate();
+                },
+                
+                getSelectedTimeFormatted() {
+                    if (!this.selectedTimeSlot || !this.availableTimesForSelectedDate) return '';
+                    
+                    const selectedTime = this.availableTimesForSelectedDate.find(time => time.id == this.selectedTimeSlot);
+                    return selectedTime ? selectedTime.time_formatted : '';
+                },
+                
+                
                 
                 // Booking type changed
                 updateBookingType(type, frequency) {
@@ -717,6 +898,18 @@
                 // Field value updated
                 updateFieldValue(fieldName, value) {
                     this.formData[fieldName] = value;
+                    this.calculatePrice();
+                },
+                
+                // Update loyalty points usage
+                updateLoyaltyPointsUsage() {
+                    if (!this.useLoyaltyPoints) {
+                        this.loyaltyPointsToUse = 0;
+                    } else {
+                        // Ensure we don't use more points than available or more than the booking amount
+                        const maxPoints = Math.min(this.userLoyaltyPoints, Math.floor(this.priceBreakdown.final_price));
+                        this.loyaltyPointsToUse = Math.min(this.loyaltyPointsToUse, maxPoints);
+                    }
                     this.calculatePrice();
                 },
                 
@@ -766,7 +959,10 @@
                             form_data: this.formData,
                             apply_rot: this.applyRot,
                             booking_type: this.bookingType,
-                            subscription_frequency: this.subscriptionFrequency
+                            subscription_frequency: this.subscriptionFrequency,
+                            loyalty_points_used: this.useLoyaltyPoints ? this.loyaltyPointsToUse : 0,
+                            slot_time_id: this.selectedTimeSlot,
+                            user_id: {{ auth()->check() ? auth()->id() : 'null' }}
                         });
                         
                         this.priceBreakdown = response.data;
@@ -776,18 +972,6 @@
                 },
                 
                 
-                selectCompany(companyId) {
-                    this.selectedCompanyId = companyId;
-                    this.autoSelectCompany = false;
-                    console.log('Selected company:', companyId);
-                },
-                
-                toggleAutoSelect() {
-                    if (this.autoSelectCompany) {
-                        this.selectedCompanyId = null;
-                    }
-                    console.log('Auto select toggled:', this.autoSelectCompany);
-                },
                 
                 // Format org number (123456-7890)
                 formatOrgNumber(event) {
@@ -846,25 +1030,11 @@
                     const form = event.target;
                     
                     // Add company selection data to form
-                    const companyIdInput = document.createElement('input');
-                    companyIdInput.type = 'hidden';
-                    companyIdInput.name = 'company_id';
-                    companyIdInput.value = this.selectedCompanyId || '';
-                    form.appendChild(companyIdInput);
-                    
-                    const autoSelectInput = document.createElement('input');
-                    autoSelectInput.type = 'hidden';
-                    autoSelectInput.name = 'auto_select_company';
-                    autoSelectInput.value = this.autoSelectCompany ? '1' : '0';
-                    form.appendChild(autoSelectInput);
-                    
                     // Make sure all data is collected before submission
                     console.log('Submitting form with data:', {
                         service_id: this.serviceId,
                         form_id: this.formId,
                         city_id: this.cityId,
-                        company_id: this.selectedCompanyId,
-                        auto_select_company: this.autoSelectCompany,
                         booking_type: this.bookingType,
                         subscription_frequency: this.subscriptionFrequency
                     });
@@ -889,6 +1059,11 @@
             <!-- Hidden required fields -->
             <input type="hidden" name="service_id" value="{{ $form->service_id }}">
             <input type="hidden" name="form_id" value="{{ $form->id }}">
+            <input type="hidden" name="selected_date" x-model="selectedDate">
+            <input type="hidden" name="selected_time_slot" x-model="selectedTimeSlot">
+            <input type="hidden" name="selected_subscription_days" :value="JSON.stringify(selectedSubscriptionDays)">
+            <input type="hidden" name="loyalty_points_used" x-model="loyaltyPointsToUse">
+            <input type="hidden" name="use_loyalty_points" x-model="useLoyaltyPoints">
 
             <!-- Progress Bar -->
             <div class="mb-8 animate-fade-in">
@@ -1182,6 +1357,177 @@
                                 </div>
                             @endif
 
+                            <!-- Swedish Calendar System -->
+                            <div class="mt-8 p-6 bg-blue-50 rounded-xl border border-blue-200">
+                                <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                                    <span class="mr-2">📅</span>
+                                    Välj datum och tid
+                                </h3>
+                                
+                                <!-- Loading State -->
+                                <div x-show="loadingSlots" class="text-center py-8">
+                                    <div class="inline-flex items-center">
+                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        <span class="text-gray-600">Laddar tillgängliga tider...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Swedish Calendar -->
+                                <div x-show="!loadingSlots" class="space-y-6">
+                                    <!-- Calendar Header -->
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-semibold text-gray-900">Välj datum</h4>
+                                        <div class="flex items-center space-x-2">
+                                            <button type="button" @click="previousMonth()" class="p-2 hover:bg-gray-100 rounded-lg">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                                </svg>
+                                            </button>
+                                            <span class="font-semibold text-gray-900" x-text="currentMonthName + ' ' + currentYear"></span>
+                                            <button type="button" @click="nextMonth()" class="p-2 hover:bg-gray-100 rounded-lg">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Calendar Grid -->
+                                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <!-- Weekday Headers -->
+                                        <div class="grid grid-cols-7 bg-gray-50 border-b">
+                                            <template x-for="day in swedishWeekdays" :key="day">
+                                                <div class="p-3 text-center text-sm font-semibold text-gray-600" x-text="day"></div>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- Calendar Days -->
+                                        <div class="grid grid-cols-7">
+                                            <template x-for="day in calendarDays" :key="day.date">
+                                                <button type="button"
+                                                        class="p-3 text-center border-r border-b border-gray-100 hover:bg-gray-50 transition-all relative"
+                                                        :class="{
+                                                            'bg-blue-50 text-blue-600 font-semibold': day.isSelected,
+                                                            'text-gray-400': !day.isCurrentMonth,
+                                                            'text-gray-900': day.isCurrentMonth && !day.isSelected,
+                                                            'bg-red-50 text-red-600': day.isToday,
+                                                            'cursor-not-allowed opacity-50': !day.isAvailable
+                                                        }"
+                                                        @click="selectCalendarDate(day)"
+                                                        :disabled="!day.isAvailable">
+                                                    <span x-text="day.dayNumber"></span>
+                                                    <div x-show="day.hasSlots" class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-green-500 rounded-full"></div>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selection Summary -->
+                                    <div x-show="selectedDate" class="bg-white rounded-lg border border-gray-200 p-4">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex-1">
+                                                <div class="flex items-center space-x-4">
+                                                    <div class="flex items-center">
+                                                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                                        <span class="text-sm font-medium text-gray-700">Datum:</span>
+                                                        <span class="text-sm text-gray-900 ml-1" x-text="selectedDateFormatted"></span>
+                                                    </div>
+                                                    <div x-show="selectedTimeSlot" class="flex items-center">
+                                                        <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                                        <span class="text-sm font-medium text-gray-700">Tid:</span>
+                                                        <span class="text-sm text-gray-900 ml-1" x-text="getSelectedTimeFormatted()"></span>
+                                                    </div>
+                                                </div>
+                                                <div x-show="!selectedTimeSlot" class="mt-2">
+                                                    <p class="text-sm text-amber-600">⚠️ Välj en tid för att fortsätta</p>
+                                                </div>
+                                            </div>
+                                            <button type="button" @click="clearDateSelection()" class="text-gray-400 hover:text-gray-600 ml-4">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Time Selection -->
+                                    <div x-show="selectedDate && availableTimesForSelectedDate.length > 0" 
+                                         x-transition
+                                         class="space-y-4">
+                                        <h4 class="font-semibold text-gray-900">Välj tid</h4>
+                                        <p class="text-sm text-gray-600 mb-4">Välj en specifik tid för din bokning</p>
+                                        
+                                        <!-- Available Times -->
+                                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                                            <template x-for="time in availableTimesForSelectedDate" :key="time.id">
+                                                <button type="button"
+                                                        class="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all text-left group"
+                                                        :class="{ 'border-blue-500 bg-blue-50 shadow-md': selectedTimeSlot === time.id, 'border-gray-200': selectedTimeSlot !== time.id }"
+                                                        @click="selectTimeSlot(time.id)"
+                                                        :disabled="!time.is_available">
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex-1">
+                                                            <div class="font-semibold text-gray-900 text-lg" x-text="time.time_formatted"></div>
+                                                            <div class="text-sm text-gray-600 mt-1" x-text="time.available_spots + ' platser kvar'"></div>
+                                                        </div>
+                                                        <div class="ml-3">
+                                                            <div x-show="selectedTimeSlot === time.id" class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                                </svg>
+                                                            </div>
+                                                            <div x-show="selectedTimeSlot !== time.id" class="w-6 h-6 border-2 border-gray-300 rounded-full group-hover:border-blue-500 transition-colors"></div>
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        
+                                        <!-- No Times Available Message -->
+                                        <div x-show="selectedDate && availableTimesForSelectedDate.length === 0" class="text-center py-8 text-gray-500">
+                                            <div class="text-4xl mb-2">⏰</div>
+                                            <p class="font-semibold">Inga tider tillgängliga</p>
+                                            <p class="text-sm mt-1">För detta datum finns inga tillgängliga tider. Välj ett annat datum.</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Subscription Day Selection (for weekly/monthly) -->
+                                    <div x-show="selectedDate && isSubscriptionBooking && (bookingType === 'weekly' || bookingType === 'monthly')" 
+                                         x-transition
+                                         class="space-y-4">
+                                        <h4 class="font-semibold text-gray-900">Välj dagar för prenumeration</h4>
+                                        
+                                        <div class="bg-white rounded-lg border border-gray-200 p-4">
+                                            <div class="grid grid-cols-7 gap-2">
+                                                <template x-for="(day, index) in swedishWeekdays" :key="index">
+                                                    <button type="button"
+                                                            class="p-2 text-center border border-gray-200 rounded-lg hover:border-blue-500 transition-all"
+                                                            :class="{ 'border-blue-500 bg-blue-50 text-blue-600': selectedSubscriptionDays.includes(index) }"
+                                                            @click="toggleSubscriptionDay(index)">
+                                                        <div class="text-xs font-semibold" x-text="day"></div>
+                                                        <div class="text-xs text-gray-500" x-text="getDayNumber(index)"></div>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                            <p class="text-sm text-gray-600 mt-3">
+                                                Välj vilka dagar i veckan/månaden du vill ha tjänsten
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- No Available Slots -->
+                                    <div x-show="!loadingSlots && Object.keys(availableSlots).length === 0" class="text-center py-8 text-gray-500">
+                                        <div class="text-4xl mb-2">📅</div>
+                                        <p class="font-semibold">Inga tillgängliga tider hittades</p>
+                                        <p class="text-sm mt-1">För denna tjänst finns inga tillgängliga tider just nu.</p>
+                                        <p class="text-sm mt-1">Kontakta oss för att hitta en lämplig tid.</p>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -1215,6 +1561,7 @@
                             </div>
                         </div>
                         @endif
+
 
                         <div class="max-w-2xl mx-auto flex flex-wrap gap-6">
                             @foreach($form->fields->sortBy('sort_order') as $field)
@@ -1495,23 +1842,6 @@
                                 <p class="text-xs text-gray-500 mt-2 italic">Klicka på flaggan för att välja annat land</p>
                             </div>
 
-                            <!-- Preferred Date & Time -->
-                            <div class="bg-gray-50 rounded-lg p-6">
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                    <span class="inline-flex items-center">
-                                        <span class="mr-2">📅</span>
-                                        Önskat datum och tid (valfritt)
-                                    </span>
-                                </label>
-                                <input 
-                                    type="datetime-local" 
-                                    name="preferred_date" 
-                                    value="{{ old('preferred_date') }}"
-                                    min="{{ now()->addDay()->format('Y-m-d\TH:i') }}"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                                >
-                                <p class="text-xs text-gray-500 mt-2">⏰ Välj när du önskar att tjänsten ska utföras (minst 24 timmar fram i tiden)</p>
-                            </div>
 
                             <!-- Message -->
                             <div class="bg-gray-50 rounded-lg p-6">
@@ -1649,6 +1979,52 @@
                             <span class="font-semibold text-green-600" x-text="'-' + formatPrice(priceBreakdown.discount_amount)"></span>
                         </div>
                         
+                        <!-- Loyalty Points Section -->
+                        <div x-show="userLoyaltyPoints > 0" class="py-3 border-b border-gray-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-gray-700 font-medium flex items-center">
+                                    <span class="mr-2">⭐</span>
+                                    Lojalitetspoäng
+                                </span>
+                                <span class="text-sm text-gray-500" x-text="'Tillgängliga: ' + userLoyaltyPoints + ' poäng'"></span>
+                            </div>
+                            
+                            <div class="space-y-2">
+                                <label class="flex items-center cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        x-model="useLoyaltyPoints"
+                                        @change="updateLoyaltyPointsUsage()"
+                                        class="mr-2 text-blue-600 focus:ring-blue-500 rounded"
+                                    >
+                                    <span class="text-sm font-medium text-gray-700">Använd lojalitetspoäng</span>
+                                </label>
+                                
+                                <div x-show="useLoyaltyPoints" class="ml-6 space-y-2">
+                                    <div class="flex items-center space-x-2">
+                                        <input 
+                                            type="range" 
+                                            min="0" 
+                                            :max="Math.min(userLoyaltyPoints, Math.floor(priceBreakdown.final_price))"
+                                            x-model="loyaltyPointsToUse"
+                                            @input="updateLoyaltyPointsUsage()"
+                                            class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        >
+                                        <span class="text-sm font-medium text-gray-700 min-w-[60px]" x-text="loyaltyPointsToUse + ' poäng'"></span>
+                                    </div>
+                                    
+                                    <div class="text-xs text-gray-500">
+                                        <span x-text="'Värde: ' + formatPrice(loyaltyPointsToUse) + ' SEK'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div x-show="useLoyaltyPoints && loyaltyPointsToUse > 0" class="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                                <span class="text-gray-600 font-medium">⭐ Lojalitetspoäng</span>
+                                <span class="font-semibold text-blue-600" x-text="'-' + formatPrice(loyaltyPointsToUse)"></span>
+                            </div>
+                        </div>
+
                         <div x-show="priceBreakdown.rot_deduction > 0" class="flex justify-between items-center py-2 border-b border-gray-200">
                             <span class="text-gray-600 font-medium">💚 ROT-avdrag</span>
                             <span class="font-semibold text-green-600" x-text="'-' + formatPrice(priceBreakdown.rot_deduction)"></span>
@@ -1666,8 +2042,8 @@
 
                 <div class="mt-3 text-sm text-gray-700 space-y-1">
                     <div class="flex justify-between">
-                        <span>Delsumma</span>
-                        <span x-text="formatPrice(priceBreakdown.subtotal)"></span>
+                        <span>Delsumma (exkl. moms)</span>
+                        <span x-text="formatPrice(priceBreakdown.final_price - priceBreakdown.tax_amount)"></span>
                     </div>
                     <div class="flex justify-between">
                         <span>Moms (<span x-text="priceBreakdown.tax_rate"></span>%)</span>

@@ -217,7 +217,7 @@
 
             <!-- What's Included -->
             <div class="space-y-4 mb-6" x-data="{ 
-                includes: {{ json_encode(old('includes', $service->includes ?? [])) }},
+                includes: @json(old('includes', $service->includes ?? [])),
                 addInclude() {
                     this.includes.push('');
                 },
@@ -252,7 +252,7 @@
 
             <!-- Features -->
             <div class="space-y-4 mb-6" x-data="{ 
-                features: {{ json_encode(old('features', $service->features ?? [])) }},
+                features: @json(old('features', $service->features ?? [])),
                 addFeature() {
                     this.features.push({ icon: '✨', title: '', description: '' });
                 },
@@ -312,7 +312,7 @@
 
             <!-- FAQ -->
             <div class="space-y-4 mb-6" x-data="{ 
-                faq: {{ json_encode(old('faq', $service->faq ?? [])) }},
+                faq: @json(old('faq', $service->faq ?? [])),
                 addFaq() {
                     this.faq.push({ question: '', answer: '' });
                 },
@@ -416,6 +416,11 @@
     document.getElementById('subscription_checkbox').addEventListener('change', function() {
         const typesSection = document.getElementById('subscription_types_section');
         typesSection.style.display = this.checked ? 'block' : 'none';
+    });
+
+    // Debug Alpine.js
+    document.addEventListener('alpine:init', () => {
+        console.log('Alpine.js initialized');
     });
 </script>
 @endpush

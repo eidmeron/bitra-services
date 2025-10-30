@@ -62,6 +62,108 @@
                     </select>
                 </div>
 
+                <!-- SEO Content Sections -->
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-bold text-gray-900 mb-6">SEO & Innehåll</h3>
+                    
+                    <!-- Intro Paragraph -->
+                    <div class="mb-6">
+                        <label class="form-label">Intro-paragraf (40-60 ord)</label>
+                        <textarea name="intro_paragraph" rows="3" class="form-input" placeholder="Kort introduktion med nyckelord...">{{ old('intro_paragraph') }}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Sammanfatta vad tjänsten är, vem den är för och fördelen</p>
+                    </div>
+
+                    <!-- Features/Benefits -->
+                    <div class="mb-6">
+                        <label class="form-label">Fördelar & Funktioner</label>
+                        <div id="features-container"></div>
+                        <button type="button" onclick="addFeature()" class="btn btn-secondary">+ Lägg till fördel</button>
+                    </div>
+
+                    <!-- Process Steps -->
+                    <div class="mb-6">
+                        <label class="form-label">Process / Så här fungerar det</label>
+                        <div id="process-container"></div>
+                        <button type="button" onclick="addProcess()" class="btn btn-secondary">+ Lägg till steg</button>
+                    </div>
+
+                    <!-- FAQ Items -->
+                    <div class="mb-6">
+                        <label class="form-label">Vanliga frågor (FAQ)</label>
+                        <div id="faq-container"></div>
+                        <button type="button" onclick="addFaq()" class="btn btn-secondary">+ Lägg till FAQ</button>
+                    </div>
+
+                    <!-- Testimonials -->
+                    <div class="mb-6">
+                        <label class="form-label">Testimonials / Kundrecensioner</label>
+                        <div id="testimonials-container"></div>
+                        <button type="button" onclick="addTestimonial()" class="btn btn-secondary">+ Lägg till testimonial</button>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="mb-6">
+                        <label class="form-label">Call-to-Action</label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <input type="text" name="cta_text" 
+                                       value="{{ old('cta_text') }}" 
+                                       placeholder="CTA text" class="form-input mb-2">
+                                <input type="text" name="cta_button_text" 
+                                       value="{{ old('cta_button_text') }}" 
+                                       placeholder="Knapptext" class="form-input mb-2">
+                                <input type="url" name="cta_button_url" 
+                                       value="{{ old('cta_button_url') }}" 
+                                       placeholder="Knapp URL" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meta Tags -->
+                    <div class="mb-6">
+                        <label class="form-label">Meta Keywords</label>
+                        <input type="text" name="meta_keywords" 
+                               value="{{ old('meta_keywords') }}" 
+                               placeholder="nyckelord1, nyckelord2, nyckelord3" class="form-input">
+                    </div>
+
+                    <!-- Open Graph -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">Open Graph (Facebook)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <input type="text" name="og_title" 
+                                       value="{{ old('og_title') }}" 
+                                       placeholder="OG Titel" class="form-input mb-2">
+                                <textarea name="og_description" 
+                                          placeholder="OG Beskrivning" class="form-input" rows="2">{{ old('og_description') }}</textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">OG Bild</label>
+                                <input type="file" name="og_image" accept="image/*" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Twitter -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold text-gray-900 mb-3">Twitter</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <input type="text" name="twitter_title" 
+                                       value="{{ old('twitter_title') }}" 
+                                       placeholder="Twitter Titel" class="form-input mb-2">
+                                <textarea name="twitter_description" 
+                                          placeholder="Twitter Beskrivning" class="form-input" rows="2">{{ old('twitter_description') }}</textarea>
+                            </div>
+                            <div>
+                                <label class="form-label">Twitter Bild</label>
+                                <input type="file" name="twitter_image" accept="image/*" class="form-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 class="font-semibold text-green-900 mb-2">✨ Förslag på kategorier</h4>
                     <div class="text-sm text-green-800 space-y-1">
@@ -86,5 +188,83 @@
         </form>
     </div>
 </div>
+
+<script>
+let featureIndex = 0;
+let processIndex = 0;
+let faqIndex = 0;
+let testimonialIndex = 0;
+
+function addFeature() {
+    const container = document.getElementById('features-container');
+    const div = document.createElement('div');
+    div.className = 'flex gap-2 mb-2 feature-item';
+    div.innerHTML = `
+        <input type="text" name="features_benefits[${featureIndex}][title]" placeholder="Titel" class="form-input flex-1">
+        <input type="text" name="features_benefits[${featureIndex}][description]" placeholder="Beskrivning" class="form-input flex-2">
+        <button type="button" onclick="removeFeature(this)" class="btn btn-danger">-</button>
+    `;
+    container.appendChild(div);
+    featureIndex++;
+}
+
+function removeFeature(button) {
+    button.parentElement.remove();
+}
+
+function addProcess() {
+    const container = document.getElementById('process-container');
+    const div = document.createElement('div');
+    div.className = 'flex gap-2 mb-2 process-item';
+    div.innerHTML = `
+        <input type="text" name="process_steps[${processIndex}][title]" placeholder="Steg ${processIndex + 1} titel" class="form-input flex-1">
+        <input type="text" name="process_steps[${processIndex}][description]" placeholder="Beskrivning" class="form-input flex-2">
+        <button type="button" onclick="removeProcess(this)" class="btn btn-danger">-</button>
+    `;
+    container.appendChild(div);
+    processIndex++;
+}
+
+function removeProcess(button) {
+    button.parentElement.remove();
+}
+
+function addFaq() {
+    const container = document.getElementById('faq-container');
+    const div = document.createElement('div');
+    div.className = 'border border-gray-200 rounded-lg p-4 mb-2 faq-item';
+    div.innerHTML = `
+        <input type="text" name="faq_items[${faqIndex}][question]" placeholder="Fråga" class="form-input mb-2">
+        <textarea name="faq_items[${faqIndex}][answer]" placeholder="Svar" class="form-input" rows="2"></textarea>
+        <button type="button" onclick="removeFaq(this)" class="btn btn-danger mt-2">- Ta bort FAQ</button>
+    `;
+    container.appendChild(div);
+    faqIndex++;
+}
+
+function removeFaq(button) {
+    button.parentElement.remove();
+}
+
+function addTestimonial() {
+    const container = document.getElementById('testimonials-container');
+    const div = document.createElement('div');
+    div.className = 'border border-gray-200 rounded-lg p-4 mb-2 testimonial-item';
+    div.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2">
+            <input type="text" name="testimonials[${testimonialIndex}][name]" placeholder="Kundnamn" class="form-input">
+            <input type="text" name="testimonials[${testimonialIndex}][location]" placeholder="Plats" class="form-input">
+        </div>
+        <textarea name="testimonials[${testimonialIndex}][content]" placeholder="Testimonial text" class="form-input" rows="2"></textarea>
+        <button type="button" onclick="removeTestimonial(this)" class="btn btn-danger mt-2">- Ta bort testimonial</button>
+    `;
+    container.appendChild(div);
+    testimonialIndex++;
+}
+
+function removeTestimonial(button) {
+    button.parentElement.remove();
+}
+</script>
 @endsection
 

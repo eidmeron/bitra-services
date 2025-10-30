@@ -29,6 +29,241 @@
             </p>
         </div>
 
+        <!-- SEO Content Sections -->
+        <div class="mb-12">
+            <!-- Intro Paragraph -->
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <div class="prose prose-lg max-w-none text-center">
+                        <p class="text-gray-700 leading-relaxed text-xl">
+                            Upptäck Sveriges mest omfattande nätverk av verifierade tjänsteföretag. Vi samarbetar med över 1000 professionella företag 
+                            som har genomgått vår noggranna verifieringsprocess. Från städning och renovering till trädgårdsarbete 
+                            och flytt - alla våra partners är verifierade för kvalitet, säkerhet och tillförlitlighet.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features/Benefits Section -->
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Varför välja våra verifierade företag?</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">✅</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Verifierade företag</h3>
+                                <p class="text-gray-600">Alla företag genomgår bakgrundskontroll, försäkring och kvalitetscertifiering.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">⭐</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Höga betyg</h3>
+                                <p class="text-gray-600">Genomsnittligt 4.8+ stjärnor från tusentals nöjda kunder.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">🛡️</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Försäkrade</h3>
+                                <p class="text-gray-600">Alla företag har fullständig försäkring för din trygghet.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">💰</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Transparenta priser</h3>
+                                <p class="text-gray-600">Inga dolda avgifter eller överraskningar - du vet alltid vad det kostar.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">⚡</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Snabb service</h3>
+                                <p class="text-gray-600">Många tjänster kan bokas samma dag eller inom 24 timmar.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center">
+                                <span class="text-2xl">🔄</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-2">Nöjdhetsgaranti</h3>
+                                <p class="text-gray-600">100% nöjdhetsgaranti - annars löser vi problemet eller ger pengarna tillbaka.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Process/How It Works Section -->
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Så här hittar du rätt företag</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                                1
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Sök & Filtrera</h3>
+                            <p class="text-gray-600">Använd våra filter för att hitta företag baserat på stad, tjänst och betyg.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                                2
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Jämför & Välj</h3>
+                            <p class="text-gray-600">Läs recensioner, jämför priser och välj det företag som passar dig bäst.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                                3
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Boka Direkt</h3>
+                            <p class="text-gray-600">Boka enkelt online med säker betalning och omedelbar bekräftelse.</p>
+                        </div>
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-4">
+                                4
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-2">Få Service</h3>
+                            <p class="text-gray-600">Få professionell service och lämna din recension efteråt.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ Section -->
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Vanliga frågor om våra företag</h2>
+                    <div class="space-y-4">
+                        <div class="border border-gray-200 rounded-lg">
+                            <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                                <span class="font-semibold text-gray-900">Hur verifierar ni företagen?</span>
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="px-6 pb-4 text-gray-600 hidden">
+                                Alla företag genomgår en omfattande verifieringsprocess inklusive bakgrundskontroll, försäkringsverifiering, kvalitetscertifiering och referenskontroll.
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg">
+                            <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                                <span class="font-semibold text-gray-900">Kan jag lita på betygen och recensionerna?</span>
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="px-6 pb-4 text-gray-600 hidden">
+                                Ja, alla recensioner kommer från verifierade kunder som faktiskt har använt tjänsten. Vi modererar alla recensioner för att säkerställa äkthet.
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg">
+                            <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                                <span class="font-semibold text-gray-900">Vad händer om jag inte är nöjd med företaget?</span>
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="px-6 pb-4 text-gray-600 hidden">
+                                Vi erbjuder 100% nöjdhetsgaranti. Om du inte är nöjd, arbetar vi tillsammans med företaget för att lösa problemet eller ger dig pengarna tillbaka.
+                            </div>
+                        </div>
+                        <div class="border border-gray-200 rounded-lg">
+                            <button class="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors" onclick="toggleFaq(this)">
+                                <span class="font-semibold text-gray-900">Är betalningen säker?</span>
+                                <svg class="w-5 h-5 text-gray-500 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="px-6 pb-4 text-gray-600 hidden">
+                                Absolut! Vi använder banknivå kryptering och säkra betalningsmetoder. Dina betalningsuppgifter är alltid skyddade.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Testimonials Section -->
+            <section class="mb-12">
+                <div class="bg-white rounded-2xl shadow-lg p-8">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Vad våra kunder säger om företagen</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <span class="text-yellow-400">⭐</span>
+                                @endfor
+                            </div>
+                            <p class="text-gray-700 mb-4 italic">"Fantastiskt företag! Mycket professionellt och snabbt. Rekommenderas varmt!"</p>
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold">E</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold text-gray-900">Erik M.</p>
+                                    <p class="text-sm text-gray-500">Uppsala</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <span class="text-yellow-400">⭐</span>
+                                @endfor
+                            </div>
+                            <p class="text-gray-700 mb-4 italic">"Perfekt service och mycket nöjd med resultatet. Kommer definitivt använda igen!"</p>
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">L</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold text-gray-900">Lisa P.</p>
+                                    <p class="text-sm text-gray-500">Västerås</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-6">
+                            <div class="flex items-center mb-4">
+                                @for($i = 0; $i < 5; $i++)
+                                    <span class="text-yellow-400">⭐</span>
+                                @endfor
+                            </div>
+                            <p class="text-gray-700 mb-4 italic">"Enkelt att boka och företaget var mycket tillförlitligt. Bra pris också!"</p>
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center text-white font-bold">J</div>
+                                <div class="ml-3">
+                                    <p class="font-semibold text-gray-900">Johan K.</p>
+                                    <p class="text-sm text-gray-500">Linköping</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- CTA Section -->
+            <section class="mb-12">
+                <div class="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl p-8 text-white text-center">
+                    <h2 class="text-3xl font-bold mb-4">Redo att hitta ditt perfekta företag?</h2>
+                    <p class="text-xl text-blue-100 mb-6">Bläddra bland våra verifierade företag och hitta den bästa matchningen för dina behov.</p>
+                    <a href="#companies-grid" class="inline-flex items-center px-8 py-4 bg-white text-blue-600 font-bold rounded-xl hover:bg-gray-100 transition-colors duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                        <span class="mr-2">🔍</span>
+                        Utforska företag
+                    </a>
+                </div>
+            </section>
+        </div>
+
         <!-- Filters & Sorting -->
         <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
             <form method="GET" action="{{ route('public.companies') }}" class="space-y-4">
@@ -213,4 +448,20 @@
         @endif
     </div>
 </div>
+
+<script>
+// FAQ Toggle Function
+function toggleFaq(button) {
+    const answer = button.nextElementSibling;
+    const icon = button.querySelector('svg');
+    
+    if (answer.classList.contains('hidden')) {
+        answer.classList.remove('hidden');
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        answer.classList.add('hidden');
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+</script>
 @endsection

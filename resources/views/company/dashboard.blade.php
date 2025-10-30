@@ -89,9 +89,9 @@
     <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-orange-100 text-sm font-medium">Väntande Utbetalningar</p>
-                <p class="text-3xl font-bold mt-2">{{ number_format($payoutStats['pending'], 0, ',', ' ') }} kr</p>
-                <p class="text-xs text-orange-100 mt-1">{{ $payoutStats['pending_count'] }} st</p>
+                <p class="text-orange-100 text-sm font-medium">Väntande Deposits</p>
+                <p class="text-3xl font-bold mt-2">{{ number_format($depositStats['pending'], 0, ',', ' ') }} kr</p>
+                <p class="text-xs text-orange-100 mt-1">{{ $depositStats['pending_count'] }} st</p>
             </div>
             <div class="text-4xl opacity-75">⏳</div>
         </div>
@@ -101,9 +101,9 @@
     <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-blue-100 text-sm font-medium">Godkända</p>
-                <p class="text-3xl font-bold mt-2">{{ number_format($payoutStats['approved'], 0, ',', ' ') }} kr</p>
-                <p class="text-xs text-blue-100 mt-1">{{ $payoutStats['approved_count'] }} st</p>
+                <p class="text-blue-100 text-sm font-medium">Skickade</p>
+                <p class="text-3xl font-bold mt-2">{{ number_format($depositStats['sent'], 0, ',', ' ') }} kr</p>
+                <p class="text-xs text-blue-100 mt-1">{{ $depositStats['sent_count'] }} st</p>
             </div>
             <div class="text-4xl opacity-75">✅</div>
         </div>
@@ -113,9 +113,9 @@
     <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-green-100 text-sm font-medium">Utbetalda</p>
-                <p class="text-3xl font-bold mt-2">{{ number_format($payoutStats['paid'], 0, ',', ' ') }} kr</p>
-                <p class="text-xs text-green-100 mt-1">{{ $payoutStats['paid_count'] }} st</p>
+                <p class="text-green-100 text-sm font-medium">Betalda</p>
+                <p class="text-3xl font-bold mt-2">{{ number_format($depositStats['paid'], 0, ',', ' ') }} kr</p>
+                <p class="text-xs text-green-100 mt-1">{{ $depositStats['paid_count'] }} st</p>
             </div>
             <div class="text-4xl opacity-75">💰</div>
         </div>
@@ -125,8 +125,8 @@
     <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
         <div class="flex items-center justify-between">
             <div>
-                <p class="text-purple-100 text-sm font-medium">Total Provision</p>
-                <p class="text-3xl font-bold mt-2">{{ number_format($payoutStats['total_commission'], 0, ',', ' ') }} kr</p>
+                <p class="text-purple-100 text-sm font-medium">Total Kommission</p>
+                <p class="text-3xl font-bold mt-2">{{ number_format($depositStats['total_commission'], 0, ',', ' ') }} kr</p>
                 <p class="text-xs text-purple-100 mt-1">Alla tider</p>
             </div>
             <div class="text-4xl opacity-75">💸</div>
@@ -188,11 +188,11 @@
                     @foreach($monthlyRevenueData as $data)
                         @php
                             $maxRevenue = collect($monthlyRevenueData)->max('revenue');
-                            $height = $maxRevenue > 0 ? ($data['revenue'] / $maxRevenue) * 100 : 0;
+                            $height = $maxRevenue > 0 ? max(($data['revenue'] / $maxRevenue) * 200, 20) : 20; // Minimum height of 20px
                         @endphp
                         <div class="flex-1 flex flex-col items-center">
                             <div class="w-full bg-gradient-to-t from-green-600 to-teal-600 rounded-t-lg hover:from-green-700 hover:to-teal-700 transition-all relative group" 
-                                 style="height: {{ $height }}%">
+                                 style="height: {{ $height }}px">
                                 <div class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                                     {{ number_format($data['revenue'], 0, ',', ' ') }} kr
                                 </div>
@@ -211,15 +211,15 @@
             </div>
         </div>
 
-        <!-- Recent Payouts -->
-        @if(isset($recentPayouts) && $recentPayouts->count() > 0)
+        <!-- Recent Deposits -->
+        @if(isset($recentDeposits) && $recentDeposits->count() > 0)
         <div class="bg-white rounded-xl shadow-lg overflow-hidden">
             <div class="p-6 bg-gradient-to-r from-purple-50 to-pink-50 border-b flex items-center justify-between">
                 <h3 class="text-xl font-bold text-gray-900 flex items-center">
                     <span class="text-2xl mr-3">💰</span>
-                    Senaste Utbetalningar
+                    Senaste Deposits
                 </h3>
-                <a href="{{ route('company.payouts.index') }}" class="text-purple-600 hover:text-purple-800 font-semibold text-sm flex items-center">
+                <a href="{{ route('company.deposits.index') }}" class="text-purple-600 hover:text-purple-800 font-semibold text-sm flex items-center">
                     Visa alla
                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -239,31 +239,34 @@
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
-                        @foreach($recentPayouts as $payout)
+                        @foreach($recentDeposits as $deposit)
                         <tr class="hover:bg-gray-50 transition">
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @if($payout->booking)
-                                    <a href="{{ route('company.bookings.show', $payout->booking) }}" class="text-blue-600 hover:underline font-medium text-sm">
-                                        #{{ $payout->booking->booking_number }}
+                                @if($deposit->booking)
+                                    <a href="{{ route('company.bookings.show', $deposit->booking) }}" class="text-blue-600 hover:underline font-medium text-sm">
+                                        #{{ $deposit->booking->booking_number }}
                                     </a>
                                 @else
                                     <span class="text-gray-400 text-sm">-</span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm text-gray-900 font-medium">{{ number_format($payout->booking_amount, 0, ',', ' ') }} kr</span>
+                                <span class="text-sm text-gray-900 font-medium">{{ number_format($deposit->booking_amount, 0, ',', ' ') }} kr</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm text-red-600 font-medium">-{{ number_format($payout->commission_amount, 0, ',', ' ') }} kr</span>
+                                <span class="text-sm text-red-600 font-medium">-{{ number_format($deposit->commission_amount, 0, ',', ' ') }} kr</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="text-sm text-green-600 font-bold">{{ number_format($payout->payout_amount, 0, ',', ' ') }} kr</span>
+                                <span class="text-sm text-green-600 font-bold">{{ number_format($deposit->deposit_amount, 0, ',', ' ') }} kr</span>
+                                @if($deposit->loyalty_points_value > 0)
+                                    <p class="text-xs text-blue-600">Lojalitetspoäng: -{{ number_format($deposit->loyalty_points_value, 0, ',', ' ') }} kr</p>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 @php
                                     $statusConfig = [
                                         'pending' => ['bg' => 'bg-yellow-100', 'text' => 'text-yellow-800', 'label' => 'Väntande'],
-                                        'approved' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Godkänd'],
+                                        'sent' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-800', 'label' => 'Skickad'],
                                         'paid' => ['bg' => 'bg-green-100', 'text' => 'text-green-800', 'label' => 'Utbetald'],
                                         'cancelled' => ['bg' => 'bg-red-100', 'text' => 'text-red-800', 'label' => 'Avbruten'],
                                     ];
@@ -611,7 +614,9 @@
             
             @if($recentActivity->count() >= 5)
                 <div class="px-6 py-4 bg-gray-50 border-t text-center">
-                    <p class="text-sm text-gray-600">Visar senaste 5 aktiviteter</p>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                        Visa alla aktiviteter →
+                    </a>
                 </div>
             @endif
         </div>

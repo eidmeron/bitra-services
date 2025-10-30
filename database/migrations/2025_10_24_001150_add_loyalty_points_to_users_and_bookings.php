@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::dropIfExists('chatbot_conversations');
-        Schema::dropIfExists('booking_chats');
+        Schema::table('users_and_bookings', function (Blueprint $table) {
+            //
+        });
     }
 
     /**
@@ -20,7 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Note: We cannot recreate these tables as we don't have the original migration files
-        // If you need to restore them, you would need to recreate the migration files
+        Schema::table('users_and_bookings', function (Blueprint $table) {
+            //
+        });
     }
 };

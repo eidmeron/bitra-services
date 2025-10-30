@@ -12,12 +12,14 @@ use App\Http\Controllers\Admin\PageContentController;
 use App\Http\Controllers\Admin\PayoutController;
 use App\Http\Controllers\Admin\ServiceController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\Admin\SlotTimeController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Middleware\AdminMiddleware;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/dashboard/cleanup-slots', [DashboardController::class, 'cleanupPastSlots'])->name('dashboard.cleanup-slots');
 
     // Users
     Route::resource('users', UserController::class);
@@ -36,6 +38,13 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
 
     // Services
     Route::resource('services', ServiceController::class);
+
+    // Slot Times
+    Route::resource('slot-times', SlotTimeController::class);
+    Route::get('slot-times/bulk/create', [SlotTimeController::class, 'bulkCreate'])->name('slot-times.bulk-create');
+    Route::post('slot-times/bulk', [SlotTimeController::class, 'bulkStore'])->name('slot-times.bulk-store');
+    Route::post('slot-times/{slotTime}/toggle-availability', [SlotTimeController::class, 'toggleAvailability'])->name('slot-times.toggle-availability');
+    Route::post('slot-times/bulk-delete', [SlotTimeController::class, 'bulkDelete'])->name('slot-times.bulk-delete');
 
     // Forms
     Route::resource('forms', FormBuilderController::class);
@@ -61,34 +70,65 @@ Route::middleware(['auth', AdminMiddleware::class])->prefix('admin')->name('admi
     Route::post('contact-messages/{contactMessage}/reply', [ContactMessageController::class, 'reply'])->name('contact-messages.reply');
     Route::delete('contact-messages/{contactMessage}', [ContactMessageController::class, 'destroy'])->name('contact-messages.destroy');
 
-    // Platform Reviews
-    Route::get('platform-reviews', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'index'])->name('platform-reviews.index');
-    Route::get('platform-reviews/{platformReview}', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'show'])->name('platform-reviews.show');
-    Route::post('platform-reviews/{platformReview}/approve', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'approve'])->name('platform-reviews.approve');
-    Route::post('platform-reviews/{platformReview}/reject', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'reject'])->name('platform-reviews.reject');
-    Route::post('platform-reviews/{platformReview}/toggle-featured', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'toggleFeatured'])->name('platform-reviews.toggle-featured');
-    Route::delete('platform-reviews/{platformReview}', [\App\Http\Controllers\Admin\PlatformReviewController::class, 'destroy'])->name('platform-reviews.destroy');
-
-    // Company Reviews
+    // Unified Reviews Management (Company + Platform)
     Route::get('reviews', [\App\Http\Controllers\Admin\ReviewController::class, 'index'])->name('reviews.index');
     Route::get('reviews/{review}', [\App\Http\Controllers\Admin\ReviewController::class, 'show'])->name('reviews.show');
-    Route::post('reviews/{review}/approve', [\App\Http\Controllers\Admin\ReviewController::class, 'approve'])->name('reviews.approve');
-    Route::post('reviews/{review}/reject', [\App\Http\Controllers\Admin\ReviewController::class, 'reject'])->name('reviews.reject');
+    
+    // Company review actions
+    Route::post('reviews/{review}/approve-company', [\App\Http\Controllers\Admin\ReviewController::class, 'approveCompany'])->name('reviews.approve-company');
+    Route::post('reviews/{review}/reject-company', [\App\Http\Controllers\Admin\ReviewController::class, 'rejectCompany'])->name('reviews.reject-company');
+    
+    // Platform review actions
+    Route::post('reviews/{review}/approve-platform', [\App\Http\Controllers\Admin\ReviewController::class, 'approvePlatform'])->name('reviews.approve-platform');
+    Route::post('reviews/{review}/reject-platform', [\App\Http\Controllers\Admin\ReviewController::class, 'rejectPlatform'])->name('reviews.reject-platform');
+    Route::post('reviews/{review}/toggle-featured', [\App\Http\Controllers\Admin\ReviewController::class, 'toggleFeatured'])->name('reviews.toggle-featured');
+    
     Route::delete('reviews/{review}', [\App\Http\Controllers\Admin\ReviewController::class, 'destroy'])->name('reviews.destroy');
 
-    // Payouts
-    Route::get('payouts', [PayoutController::class, 'index'])->name('payouts.index');
-    Route::get('payouts/{payout}', [PayoutController::class, 'show'])->name('payouts.show');
-    Route::post('payouts/{payout}/approve', [PayoutController::class, 'approve'])->name('payouts.approve');
-    Route::post('payouts/{payout}/mark-as-paid', [PayoutController::class, 'markAsPaid'])->name('payouts.mark-as-paid');
-    Route::post('payouts/bulk-approve', [PayoutController::class, 'bulkApprove'])->name('payouts.bulk-approve');
-    Route::post('payouts/bulk-mark-as-paid', [PayoutController::class, 'bulkMarkAsPaid'])->name('payouts.bulk-mark-as-paid');
-    Route::get('payouts/weekly-reports', [PayoutController::class, 'weeklyReports'])->name('payouts.weekly-reports');
-    Route::post('payouts/generate-weekly-reports', [PayoutController::class, 'generateWeeklyReports'])->name('payouts.generate-weekly-reports');
-    Route::post('payouts/send-weekly-reports', [PayoutController::class, 'sendWeeklyReports'])->name('payouts.send-weekly-reports');
-    Route::get('companies/{company}/balance', [PayoutController::class, 'companyBalance'])->name('payouts.company-balance');
-    Route::post('companies/{company}/approve-payouts', [PayoutController::class, 'approveCompanyPayouts'])->name('payouts.approve-company-payouts');
-    Route::post('companies/{company}/mark-payouts-as-paid', [PayoutController::class, 'markCompanyPayoutsAsPaid'])->name('payouts.mark-company-payouts-as-paid');
+    // SEO Pages Management
+    Route::resource('seo-pages', \App\Http\Controllers\Admin\SeoPageController::class);
+    Route::post('seo-pages/{seoPage}/toggle-status', [\App\Http\Controllers\Admin\SeoPageController::class, 'toggleStatus'])->name('seo-pages.toggle-status');
+
+    // Deposits (replaces payouts)
+    Route::get('deposits/weekly-reports', [\App\Http\Controllers\Admin\DepositController::class, 'weeklyReports'])->name('deposits.weekly-reports');
+    Route::post('deposits/generate-weekly-reports', [\App\Http\Controllers\Admin\DepositController::class, 'generateWeeklyReports'])->name('deposits.generate-weekly-reports');
+    Route::post('deposits/weekly-reports/{report}/send', [\App\Http\Controllers\Admin\DepositController::class, 'sendWeeklyReport'])->name('deposits.weekly-reports.send');
+    Route::resource('deposits', \App\Http\Controllers\Admin\DepositController::class);
+    Route::post('deposits/{deposit}/send', [\App\Http\Controllers\Admin\DepositController::class, 'send'])->name('deposits.send');
+    Route::post('deposits/{deposit}/mark-paid', [\App\Http\Controllers\Admin\DepositController::class, 'markAsPaid'])->name('deposits.mark-paid');
+    
+// Invoices
+Route::get('invoices/settings', [\App\Http\Controllers\Admin\InvoiceController::class, 'settings'])->name('invoices.settings');
+Route::post('invoices/settings', [\App\Http\Controllers\Admin\InvoiceController::class, 'updateSettings'])->name('invoices.settings.update');
+Route::resource('invoices', \App\Http\Controllers\Admin\InvoiceController::class);
+Route::post('invoices/{invoice}/send', [\App\Http\Controllers\Admin\InvoiceController::class, 'send'])->name('invoices.send');
+Route::post('invoices/{invoice}/mark-paid', [\App\Http\Controllers\Admin\InvoiceController::class, 'markAsPaid'])->name('invoices.mark-paid');
+    
+    // Loyalty Points
+    Route::resource('loyalty-points', \App\Http\Controllers\Admin\LoyaltyPointController::class);
+    Route::post('loyalty-points/expire-old', [\App\Http\Controllers\Admin\LoyaltyPointController::class, 'expireOldPoints'])->name('loyalty-points.expire-old');
+    
+    // Analytics
+    Route::get('analytics', [\App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('analytics/data', [\App\Http\Controllers\Admin\AnalyticsController::class, 'getData'])->name('analytics.data');
+    Route::get('analytics/city/{city}', [\App\Http\Controllers\Admin\AnalyticsController::class, 'getCityAnalytics'])->name('analytics.city');
+    Route::get('analytics/seo', [\App\Http\Controllers\Admin\AnalyticsController::class, 'seo'])->name('analytics.seo');
+    Route::get('analytics/visitors', [\App\Http\Controllers\Admin\AnalyticsController::class, 'visitors'])->name('analytics.visitors');
+    Route::get('analytics/settings', [\App\Http\Controllers\Admin\AnalyticsController::class, 'settings'])->name('analytics.settings');
+    Route::post('analytics/settings', [\App\Http\Controllers\Admin\AnalyticsController::class, 'updateSettings'])->name('analytics.settings.update');
+    Route::post('analytics/test-tracking', [\App\Http\Controllers\Admin\AnalyticsController::class, 'testTracking'])->name('analytics.test-tracking');
+    
+        // Notification Settings
+        Route::resource('notification-settings', \App\Http\Controllers\Admin\NotificationSettingsController::class);
+        Route::post('notification-settings/{notificationSetting}/toggle', [\App\Http\Controllers\Admin\NotificationSettingsController::class, 'toggle'])->name('notification-settings.toggle');
+        Route::post('notification-settings/preview', [\App\Http\Controllers\Admin\NotificationSettingsController::class, 'preview'])->name('notification-settings.preview');
+        
+        // Email Templates
+        Route::get('email-templates', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'index'])->name('email-templates.index');
+        Route::get('email-templates/{notificationSetting}/edit', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'edit'])->name('email-templates.edit');
+        Route::put('email-templates/{notificationSetting}', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'update'])->name('email-templates.update');
+        Route::get('email-templates/{notificationSetting}/preview', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'preview'])->name('email-templates.preview');
+        Route::post('email-templates/{notificationSetting}/test', [\App\Http\Controllers\Admin\EmailTemplateController::class, 'test'])->name('email-templates.test');
 
     // Notifications
     Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');

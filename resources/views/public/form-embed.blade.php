@@ -320,12 +320,16 @@
                             <span>${data.pricing.city_addition.toLocaleString('sv-SE')} kr</span>
                         </div>
                         <div class="pricing-item">
-                            <span>Moms (25%):</span>
+                            <span>Delsumma (exkl. moms):</span>
+                            <span>${data.pricing.subtotal_after_deductions.toLocaleString('sv-SE')} kr</span>
+                        </div>
+                        <div class="pricing-item">
+                            <span>Moms (${data.pricing.tax_rate}%):</span>
                             <span>${data.pricing.tax_amount.toLocaleString('sv-SE')} kr</span>
                         </div>
                         <div class="pricing-total">
                             <span>Totalt (inkl. moms):</span>
-                            <span>${data.pricing.total_with_tax.toLocaleString('sv-SE')} kr</span>
+                            <span>${data.pricing.final_price.toLocaleString('sv-SE')} kr</span>
                         </div>
                     `;
                     pricingSummary.style.display = 'block';

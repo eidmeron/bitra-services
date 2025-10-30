@@ -32,7 +32,7 @@ class DashboardController extends Controller
                 ->whereIn('status', ['completed', 'confirmed'])
                 ->whereMonth('created_at', now()->month)
                 ->sum('final_price'),
-            'average_rating' => $company->reviews_avg_rating ?? 0,
+            'average_rating' => $company->reviews_avg_company_rating ?? 0,
             'total_reviews' => $company->reviews_count ?? 0,
         ];
 
@@ -82,20 +82,21 @@ class DashboardController extends Controller
             ->limit(3)
             ->get();
 
-        // Payout stats
-        $payoutStats = [
-            'pending' => \App\Models\Payout::where('company_id', $company->id)->pending()->sum('payout_amount'),
-            'pending_count' => \App\Models\Payout::where('company_id', $company->id)->pending()->count(),
-            'approved' => \App\Models\Payout::where('company_id', $company->id)->approved()->sum('payout_amount'),
-            'approved_count' => \App\Models\Payout::where('company_id', $company->id)->approved()->count(),
-            'paid' => \App\Models\Payout::where('company_id', $company->id)->paid()->sum('payout_amount'),
-            'paid_count' => \App\Models\Payout::where('company_id', $company->id)->paid()->count(),
-            'total_commission' => \App\Models\Payout::where('company_id', $company->id)->sum('commission_amount'),
+        // Deposit stats (replaces payout stats)
+        $depositStats = [
+            'pending' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'pending')->sum('deposit_amount'),
+            'pending_count' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'pending')->count(),
+            'sent' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'sent')->sum('deposit_amount'),
+            'sent_count' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'sent')->count(),
+            'paid' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'paid')->sum('deposit_amount'),
+            'paid_count' => \App\Models\Deposit::where('company_id', $company->id)->where('status', 'paid')->count(),
+            'total_commission' => \App\Models\Deposit::where('company_id', $company->id)->sum('commission_amount'),
+            'total_loyalty_deduction' => \App\Models\Deposit::where('company_id', $company->id)->sum('loyalty_points_value'),
         ];
 
-        // Recent payouts
-        $recentPayouts = \App\Models\Payout::where('company_id', $company->id)
-            ->with('booking')
+        // Recent deposits
+        $recentDeposits = \App\Models\Deposit::where('company_id', $company->id)
+            ->with('booking.service')
             ->latest()
             ->limit(5)
             ->get();
@@ -108,8 +109,8 @@ class DashboardController extends Controller
             'monthlyRevenueData',
             'recentActivity',
             'company',
-            'payoutStats',
-            'recentPayouts',
+            'depositStats',
+            'recentDeposits',
             'recentComplaints'
         ));
     }

@@ -65,7 +65,7 @@ final class SettingsController extends Controller
     {
         $validated = $request->validate([
             // Brand & Logo
-            'site_logo' => 'nullable|image|max:2048',
+            'site_logo' => 'nullable|image|max:2048000',
             'site_favicon' => 'nullable|image|max:1024',
             'site_name' => 'required|string|max:255',
             'site_tagline' => 'nullable|string|max:255',
@@ -79,7 +79,7 @@ final class SettingsController extends Controller
             'seo_title' => 'required|string|max:60',
             'seo_description' => 'required|string|max:160',
             'seo_keywords' => 'nullable|string|max:255',
-            'seo_og_image' => 'nullable|image|max:2048',
+            'seo_og_image' => 'nullable|image|max:2048000',
             
             // Loyalty Points
             'loyalty_points_enabled' => 'boolean',

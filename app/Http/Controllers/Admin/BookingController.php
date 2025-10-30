@@ -110,7 +110,7 @@ class BookingController extends Controller
 
     public function show(Booking $booking): View
     {
-        $booking->load(['service', 'city', 'user', 'company.user', 'form', 'review']);
+        $booking->load(['service', 'city', 'user', 'company.user', 'form', 'review', 'slotTime']);
 
         $availableCompanies = $booking->status === 'pending'
             ? $this->bookingWorkflow->findAvailableCompanies($booking)

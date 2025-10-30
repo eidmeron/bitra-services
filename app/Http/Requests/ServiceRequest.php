@@ -37,7 +37,7 @@ class ServiceRequest extends FormRequest
             ],
             'description' => 'nullable|string',
             'full_content' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:2048000',
             'icon' => 'nullable|string|max:255',
             'status' => 'required|in:active,inactive',
             'base_price' => 'required|numeric|min:0',

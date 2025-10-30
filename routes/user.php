@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\User\BookingController;
 use App\Http\Controllers\User\ChatController;
 use App\Http\Controllers\User\DashboardController;
+use App\Http\Controllers\User\LoyaltyPointController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Middleware\UserMiddleware;
 use Illuminate\Support\Facades\Route;
@@ -19,10 +20,15 @@ Route::middleware(['auth', UserMiddleware::class])->prefix('user')->name('user.'
     // Bookings
     Route::resource('bookings', BookingController::class)->only(['index', 'show']);
     Route::post('bookings/{booking}/cancel', [BookingController::class, 'cancel'])->name('bookings.cancel');
-    Route::post('bookings/{booking}/review', [BookingController::class, 'review'])->name('bookings.review');
+    // Dual review system
+    Route::get('bookings/{booking}/review', [\App\Http\Controllers\Public\DualReviewController::class, 'show'])->name('bookings.review');
+    Route::post('bookings/{booking}/review', [\App\Http\Controllers\Public\DualReviewController::class, 'submit'])->name('bookings.review.submit');
     
     // Chat
     Route::post('bookings/{booking}/chat', [ChatController::class, 'send'])->name('bookings.chat.send');
+    
+    // Loyalty Points
+    Route::resource('loyalty-points', LoyaltyPointController::class)->only(['index', 'show']);
     
     // Notifications
     Route::post('notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read');

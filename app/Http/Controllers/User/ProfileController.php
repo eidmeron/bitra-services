@@ -33,7 +33,7 @@ final class ProfileController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
-            'photo' => 'nullable|image|max:2048', // 2MB max
+            'photo' => 'nullable|image|max:2048000', // 2000MB max
             'current_password' => 'nullable|required_with:password',
             'password' => 'nullable|min:8|confirmed',
         ], [

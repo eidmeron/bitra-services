@@ -40,13 +40,15 @@ class UserSeeder extends Seeder
         ];
 
         foreach ($users as $userData) {
-            User::create([
-                'type' => 'user',
-                'email' => $userData['email'],
-                'phone' => $userData['phone'],
-                'password' => Hash::make('password'),
-                'status' => 'active',
-            ]);
+            User::updateOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'type' => 'user',
+                    'phone' => $userData['phone'],
+                    'password' => Hash::make('password'),
+                    'status' => 'active',
+                ]
+            );
         }
 
         $this->command->info('Created ' . count($users) . ' regular users');

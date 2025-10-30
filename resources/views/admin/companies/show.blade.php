@@ -10,8 +10,8 @@
             <p class="text-gray-600 mt-1">Fullständig företagsinformation och statistik</p>
         </div>
         <div class="flex space-x-3">
-            <a href="{{ route('admin.payouts.company-balance', $company) }}" class="btn btn-success">
-                💰 Balans & Utbetalningar
+            <a href="{{ route('admin.deposits.index', ['company_id' => $company->id]) }}" class="btn btn-success">
+                💰 Deposits & Kommissioner
             </a>
             <a href="{{ route('admin.companies.edit', $company) }}" class="btn btn-primary">
                 ✏️ Redigera
@@ -186,6 +186,67 @@
                     </div>
                 @else
                     <p class="text-gray-500">Inga städer tillagda än</p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Slot Times -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-lg font-semibold">⏰ Tidsluckor</h3>
+            </div>
+            <div class="card-body">
+                @php
+                    $companySlotTimes = \App\Models\SlotTime::where('company_id', $company->id)
+                        ->with(['service', 'city'])
+                        ->future()
+                        ->orderBy('date')
+                        ->orderBy('start_time')
+                        ->limit(10)
+                        ->get();
+                @endphp
+                
+                @if($companySlotTimes->count() > 0)
+                    <div class="space-y-3">
+                        @foreach($companySlotTimes as $slotTime)
+                            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                                <div>
+                                    <div class="font-medium">{{ $slotTime->service->name }}</div>
+                                    <div class="text-sm text-gray-500">
+                                        {{ $slotTime->city->name }} | 
+                                        {{ $slotTime->date->format('Y-m-d') }} | 
+                                        {{ \Carbon\Carbon::parse($slotTime->start_time)->format('H:i') }} - 
+                                        {{ \Carbon\Carbon::parse($slotTime->end_time)->format('H:i') }}
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-sm font-medium">
+                                        {{ $slotTime->booked_count }}/{{ $slotTime->capacity }}
+                                    </div>
+                                    <span class="px-2 py-1 rounded-full text-xs font-semibold
+                                        {{ $slotTime->is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                        {{ $slotTime->is_available ? 'Tillgänglig' : 'Otillgänglig' }}
+                                    </span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @if($companySlotTimes->count() >= 10)
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('admin.slot-times.index', ['company_id' => $company->id]) }}" 
+                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                Visa alla tidsluckor →
+                            </a>
+                        </div>
+                    @endif
+                @else
+                    <p class="text-gray-500">Inga tidsluckor skapade än</p>
+                    <div class="mt-3">
+                        <a href="{{ route('admin.slot-times.create', ['company_id' => $company->id]) }}" 
+                           class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            Skapa första tidsluckan →
+                        </a>
+                    </div>
                 @endif
             </div>
         </div>
@@ -439,30 +500,30 @@
             </div>
         </div>
 
-        <!-- Payout Info -->
-        @if($company->payout_method)
+        <!-- Deposit Info -->
+        @if($company->deposit_method)
         <div class="card">
             <div class="card-header">
-                <h3 class="text-lg font-semibold">🏦 Utbetalningsinfo</h3>
+                <h3 class="text-lg font-semibold">💰 Depositsinfo</h3>
             </div>
             <div class="card-body space-y-3">
                 <div>
                     <div class="text-xs text-gray-500 uppercase mb-1">Metod</div>
                     <div class="text-sm font-semibold">
-                        @if($company->payout_method === 'swish')
+                        @if($company->deposit_method === 'swish')
                             <span class="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs">Swish</span>
                         @else
                             <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">Bankkonto</span>
                         @endif
                     </div>
                 </div>
-                @if($company->payout_method === 'swish' && $company->swish_number)
+                @if($company->deposit_method === 'swish' && $company->swish_number)
                     <div>
                         <div class="text-xs text-gray-500 uppercase mb-1">Swish-nummer</div>
                         <div class="text-sm">{{ $company->swish_number }}</div>
                     </div>
                 @endif
-                @if($company->payout_method === 'bank_account')
+                @if($company->deposit_method === 'bank_account')
                     @if($company->bank_name)
                         <div>
                             <div class="text-xs text-gray-500 uppercase mb-1">Bank</div>

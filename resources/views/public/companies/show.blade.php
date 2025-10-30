@@ -13,12 +13,12 @@
                     <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ $company->company_name }}</h1>
                     <p class="text-xl text-blue-100 mb-6">{{ $company->description }}</p>
                     
-                    @if($company->reviews_avg_rating)
+                    @if($company->reviews_avg_company_rating)
                         <div class="flex items-center bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg inline-flex">
                             <svg class="w-6 h-6 text-yellow-300 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
-                            <span class="font-bold text-2xl">{{ number_format($company->reviews_avg_rating, 1) }}</span>
+                            <span class="font-bold text-2xl">{{ number_format($company->reviews_avg_company_rating, 1) }}</span>
                             <span class="text-blue-100 ml-2">({{ $company->reviews_count }} recensioner)</span>
                         </div>
                     @endif
@@ -94,13 +94,13 @@
                                 </svg>
                                 Kundrecensioner
                             </h2>
-                            @if($company->reviews_avg_rating)
+                            @if($company->reviews_avg_company_rating)
                                 <div class="flex items-center bg-yellow-50 px-4 py-2 rounded-lg">
                                     <svg class="w-6 h-6 text-yellow-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                     </svg>
                                     <div>
-                                        <span class="font-bold text-2xl text-gray-900">{{ number_format($company->reviews_avg_rating, 1) }}</span>
+                                        <span class="font-bold text-2xl text-gray-900">{{ number_format($company->reviews_avg_company_rating, 1) }}</span>
                                         <span class="text-sm text-gray-600 ml-1">av 5</span>
                                         <p class="text-xs text-gray-500">{{ $company->reviews_count }} {{ $company->reviews_count === 1 ? 'recension' : 'recensioner' }}</p>
                                     </div>
@@ -277,10 +277,10 @@
                                 <span class="text-gray-600">Recensioner:</span>
                                 <span class="font-bold text-gray-900">{{ $company->reviews_count }}</span>
                             </div>
-                            @if($company->reviews_avg_rating)
+                            @if($company->reviews_avg_company_rating)
                                 <div class="flex justify-between items-center">
                                     <span class="text-gray-600">Betyg:</span>
-                                    <span class="font-bold text-yellow-600">{{ number_format($company->reviews_avg_rating, 1) }} ⭐</span>
+                                    <span class="font-bold text-yellow-600">{{ number_format($company->reviews_avg_company_rating, 1) }} ⭐</span>
                                 </div>
                             @endif
                         </div>
